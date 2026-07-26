@@ -470,6 +470,15 @@ def test_plan_list_is_scoped_to_the_searched_state(tmp_path, monkeypatch):
         write_plans(tmp_path, plans, names, index_url="https://issuer.test/index.json",
                     plan_year=2026, stats=stats, client=None)
 
+    # A national payer, written HERE rather than assumed. The legacy Medicare source is
+    # only available when a local innetwork.db has been ingested, so relying on it made
+    # this test pass on a developer box and fail on a clean checkout.
+    national, _adm, _rej = membership.build_bitmap([NPI_A])
+    membership.write_payer(
+        tmp_path, id="medicare", label="Medicare (Original)", category="medicare",
+        level="plan", method="cms-enrollment", source_url="https://cms.example/enrollment",
+        states=None, bitmap=national)
+
     old_dir, old_use = app_settings.membership_dir, app_settings.use_membership
     app_settings.membership_dir, app_settings.use_membership = str(tmp_path), True
     try:
@@ -484,8 +493,9 @@ def test_plan_list_is_scoped_to_the_searched_state(tmp_path, monkeypatch):
         assert mrf("") == {"73836ak0930001", "26049mi0010001"}   # unscoped: everything
         assert mrf("MI") == {"26049mi0010001"}                   # a Texan never sees Alaska
         assert mrf("AK") == {"73836ak0930001"}
-        # National plans survive every scope — scoping narrows the regional noise, it must
-        # never hide Medicare from someone searching a particular state.
+        # National plans survive every scope — scoping narrows regional noise, it must
+        # never hide a national payer from someone searching a particular state.
+        assert "medicare" in ids("")
         assert "medicare" in ids("MI") and "medicare" in ids("AK")
         # The scoped payload carries the scope so a UI can label it honestly.
         mi = [p for p in r.plans("MI") if p["id"] == "26049mi0010001"][0]
