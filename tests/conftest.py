@@ -9,6 +9,28 @@ from app.config import settings
 
 
 @pytest.fixture(autouse=True)
+def _hermetic_db(tmp_path_factory):
+    """Point the datastore at an empty temp DB for EVERY test.
+
+    Without this, any test that doesn't request `temp_db` reads the developer's real
+    ./innetwork.db — so a locally-ingested Medicare index silently supplies a verified
+    payer that CI, which has no such file, does not have. That is not hypothetical: it let
+    a test asserting "a national plan survives state scoping" pass on a dev box and fail on
+    a clean checkout, because the national plan it checked was ambient rather than created
+    by the test.
+
+    `temp_db` still overrides this per-test for the tests that want a real initialized
+    schema; this just makes the DEFAULT hermetic instead of whatever happens to be on disk.
+    """
+    old = settings.db_path
+    settings.db_path = str(tmp_path_factory.mktemp("hermetic_db") / "test.db")
+    try:
+        yield
+    finally:
+        settings.db_path = old
+
+
+@pytest.fixture(autouse=True)
 def _hermetic_planet_registry():
     """Keep the suite hermetic: don't auto-wire the live public Plan-Net endpoints (no
     real network calls / 12s timeouts during tests). Tests that exercise the registry

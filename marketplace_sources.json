@@ -1,0 +1,1740 @@
+{
+  "_comment": "Marketplace (QHP) machine-readable index URLs, parsed from the CMS Machine-Readable URL PUF by app/marketplace_registry.py. Regenerate with `python -m app.marketplace_registry --refresh`. Issuers sharing an index_url are fetched once. The PUF's Tech POC Email column is intentionally dropped.",
+  "source_url": "https://data.healthcare.gov/datafile/py2026/machine_readable_PUF.xlsx",
+  "plan_year": 2026,
+  "retrieved": "2026-07-24",
+  "issuer_count": 346,
+  "index_url_count": 108,
+  "sources": [
+    {
+      "issuer_id": "21989",
+      "state": "AK",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "38344",
+      "state": "AK",
+      "index_url": "https://fm.formularynavigator.com/jsonFiles/publish/11/47/cms-data-index.json"
+    },
+    {
+      "issuer_id": "73836",
+      "state": "AK",
+      "index_url": "https://www.modahealth.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "74819",
+      "state": "AK",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "12538",
+      "state": "AL",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "17091",
+      "state": "AL",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "17540",
+      "state": "AL",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "28725",
+      "state": "AL",
+      "index_url": "https://cmsdata.providers4you.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "44580",
+      "state": "AL",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "46363",
+      "state": "AL",
+      "index_url": "https://emihealth.com/Services/providerdata/cms-data-index.json"
+    },
+    {
+      "issuer_id": "46944",
+      "state": "AL",
+      "index_url": "https://www.bcbsal.org/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "53932",
+      "state": "AL",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "60075",
+      "state": "AL",
+      "index_url": "https://qhp.truassure.com/cmsdata/index.json"
+    },
+    {
+      "issuer_id": "69461",
+      "state": "AL",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "82285",
+      "state": "AL",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "13262",
+      "state": "AR",
+      "index_url": "https://secure.healthadvantage-hmo.com/doclib/QHP/HA/index.json"
+    },
+    {
+      "issuer_id": "26904",
+      "state": "AR",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "28348",
+      "state": "AR",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "37903",
+      "state": "AR",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "48772",
+      "state": "AR",
+      "index_url": "https://secure.arkansasoctave.com/doclib/QHP/Octave/index.json"
+    },
+    {
+      "issuer_id": "62141",
+      "state": "AR",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "70525",
+      "state": "AR",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "75293",
+      "state": "AR",
+      "index_url": "https://secure.arkansasbluecross.com/doclib/QHP/index.json"
+    },
+    {
+      "issuer_id": "12303",
+      "state": "AZ",
+      "index_url": "https://dentaquest.com/getattachment/Marketplace/CMSDataIndex/cms-data-index.json"
+    },
+    {
+      "issuer_id": "13877",
+      "state": "AZ",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "17454",
+      "state": "AZ",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "24106",
+      "state": "AZ",
+      "index_url": "https://qhp.truassure.com/cmsdata/index.json"
+    },
+    {
+      "issuer_id": "30045",
+      "state": "AZ",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "34095",
+      "state": "AZ",
+      "index_url": "https://api.solsticebenefits.com/v1/Providers/Cms/GetIndex.json"
+    },
+    {
+      "issuer_id": "40702",
+      "state": "AZ",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "53613",
+      "state": "AZ",
+      "index_url": "https://emihealth.com/Services/providerdata/cms-data-index.json"
+    },
+    {
+      "issuer_id": "53901",
+      "state": "AZ",
+      "index_url": "https://azblue.com/JSON/Index.JSON"
+    },
+    {
+      "issuer_id": "66105",
+      "state": "AZ",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "68445",
+      "state": "AZ",
+      "index_url": "https://api.antidotehealth.ai/antidote-index-az-2026.json"
+    },
+    {
+      "issuer_id": "77352",
+      "state": "AZ",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "82011",
+      "state": "AZ",
+      "index_url": "https://api.solsticebenefits.com/v1/Providers/Cms/GetIndex.json"
+    },
+    {
+      "issuer_id": "85533",
+      "state": "AZ",
+      "index_url": "https://fm.formularynavigator.com/jsonFiles/publish/200/269/cms-data-index.json"
+    },
+    {
+      "issuer_id": "86830",
+      "state": "AZ",
+      "index_url": "https://www.cigna.com/sites/json/cms-data-index.json"
+    },
+    {
+      "issuer_id": "91450",
+      "state": "AZ",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "97667",
+      "state": "AZ",
+      "index_url": "https://www.cigna.com/sites/json/cms-data-index.json"
+    },
+    {
+      "issuer_id": "26018",
+      "state": "DE",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "64004",
+      "state": "DE",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "67775",
+      "state": "DE",
+      "index_url": "https://www.dominionnational.com/Resources/dominion/index.json"
+    },
+    {
+      "issuer_id": "72760",
+      "state": "DE",
+      "index_url": "https://www.amerihealthcaritasnext.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "76168",
+      "state": "DE",
+      "index_url": "https://www.pfpdata.com/cms-data/76168-de/76168-index.json"
+    },
+    {
+      "issuer_id": "13887",
+      "state": "FL",
+      "index_url": "https://22healthplan.com/machine-readable-files/cms-data-index.json"
+    },
+    {
+      "issuer_id": "15833",
+      "state": "FL",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "15980",
+      "state": "FL",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "16842",
+      "state": "FL",
+      "index_url": "https://www.bcbsfl.com/DocumentLibrary/Providers/cms/index.json"
+    },
+    {
+      "issuer_id": "17121",
+      "state": "FL",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "19898",
+      "state": "FL",
+      "index_url": "https://shc-p-001.sitecorecontenthub.cloud/api/public/content/indexfile.json"
+    },
+    {
+      "issuer_id": "21525",
+      "state": "FL",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "30115",
+      "state": "FL",
+      "index_url": "https://fl-d4h.dentaltotalhealth.com/healthcare-data/FL/cms-data-index.json"
+    },
+    {
+      "issuer_id": "30252",
+      "state": "FL",
+      "index_url": "https://www.bcbsfl.com/DocumentLibrary/Providers/cms/index.json"
+    },
+    {
+      "issuer_id": "36194",
+      "state": "FL",
+      "index_url": "https://apps.hf.org/applications/dn/cms_json/index.json"
+    },
+    {
+      "issuer_id": "43274",
+      "state": "FL",
+      "index_url": "https://api.solsticebenefits.com/v1/Providers/Cms/GetIndex.json"
+    },
+    {
+      "issuer_id": "44228",
+      "state": "FL",
+      "index_url": "https://www22.elevancehealth.com/cms-data-index-json/Elevance-Health-Data-Index.json"
+    },
+    {
+      "issuer_id": "48121",
+      "state": "FL",
+      "index_url": "https://www.cigna.com/sites/json/cms-data-index.json"
+    },
+    {
+      "issuer_id": "48129",
+      "state": "FL",
+      "index_url": "https://cmsdata.providers4you.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "49004",
+      "state": "FL",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "54172",
+      "state": "FL",
+      "index_url": "https://www.molinahealthcare.com/cms/json/index.json"
+    },
+    {
+      "issuer_id": "56503",
+      "state": "FL",
+      "index_url": "https://www.fhcp.com/xml/cms-data-index.json"
+    },
+    {
+      "issuer_id": "59667",
+      "state": "FL",
+      "index_url": "https://dentaquest.com/getattachment/Marketplace/CMSDataIndex/cms-data-index.json"
+    },
+    {
+      "issuer_id": "66966",
+      "state": "FL",
+      "index_url": "https://capitalhealth.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "67926",
+      "state": "FL",
+      "index_url": "https://www.amerihealthcaritasnext.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "68398",
+      "state": "FL",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "74243",
+      "state": "FL",
+      "index_url": "https://www.dominionnational.com/Resources/dominion/index.json"
+    },
+    {
+      "issuer_id": "79850",
+      "state": "FL",
+      "index_url": "https://www.cigna.com/sites/json/cms-data-index.json"
+    },
+    {
+      "issuer_id": "86382",
+      "state": "FL",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "97725",
+      "state": "FL",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "98869",
+      "state": "FL",
+      "index_url": "https://emihealth.com/Services/providerdata/cms-data-index.json"
+    },
+    {
+      "issuer_id": "10046",
+      "state": "HI",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "18350",
+      "state": "HI",
+      "index_url": "https://hmsa.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "27409",
+      "state": "HI",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "31358",
+      "state": "HI",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "46082",
+      "state": "HI",
+      "index_url": "https://www.hawaiidentalservice.com/cms/index.json"
+    },
+    {
+      "issuer_id": "60612",
+      "state": "HI",
+      "index_url": "https://healthy.kaiserpermanente.org/content/dam/kporg/data/hi/cms-data-index.json"
+    },
+    {
+      "issuer_id": "25896",
+      "state": "IA",
+      "index_url": "https://public-cdn.wellmark.com/json/WHPI/index.json"
+    },
+    {
+      "issuer_id": "45819",
+      "state": "IA",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "48286",
+      "state": "IA",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "50730",
+      "state": "IA",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "56610",
+      "state": "IA",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "63366",
+      "state": "IA",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "71051",
+      "state": "IA",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "74980",
+      "state": "IA",
+      "index_url": "https://www.ahsecure.net/CMS/index.json"
+    },
+    {
+      "issuer_id": "93078",
+      "state": "IA",
+      "index_url": "https://esbgatewaypub.medica.com/rest/QHP/IA/93078/cms-data-index.json"
+    },
+    {
+      "issuer_id": "16845",
+      "state": "IN",
+      "index_url": "https://www.dominionnational.com/Resources/dominion/index.json"
+    },
+    {
+      "issuer_id": "17575",
+      "state": "IN",
+      "index_url": "https://www22.elevancehealth.com/cms-data-index-json/Elevance-Health-Data-Index.json"
+    },
+    {
+      "issuer_id": "28856",
+      "state": "IN",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "33086",
+      "state": "IN",
+      "index_url": "https://portal.insuringsmiles.com/machinereadablefiles/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "35065",
+      "state": "IN",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "43433",
+      "state": "IN",
+      "index_url": "https://dentaquest.com/getattachment/Marketplace/CMSDataIndex/cms-data-index.json"
+    },
+    {
+      "issuer_id": "54192",
+      "state": "IN",
+      "index_url": "https://caresource.com/vendor/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "59560",
+      "state": "IN",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "72850",
+      "state": "IN",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "83557",
+      "state": "IN",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "87417",
+      "state": "IN",
+      "index_url": "https://qhp.truassure.com/cmsdata/index.json"
+    },
+    {
+      "issuer_id": "94419",
+      "state": "IN",
+      "index_url": "https://www.cigna.com/sites/json/cms-data-index.json"
+    },
+    {
+      "issuer_id": "99791",
+      "state": "IN",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "11339",
+      "state": "KS",
+      "index_url": "https://www.dentegra.com/hcx/cms-data-index.json"
+    },
+    {
+      "issuer_id": "18558",
+      "state": "KS",
+      "index_url": "https://www.bcbsks.com/qhp-data/index.BCBSKS.json"
+    },
+    {
+      "issuer_id": "25268",
+      "state": "KS",
+      "index_url": "https://qhp.truassure.com/cmsdata/index.json"
+    },
+    {
+      "issuer_id": "34368",
+      "state": "KS",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "39520",
+      "state": "KS",
+      "index_url": "https://esbgatewaypub.medica.com/rest/QHP/KS/39520/cms-data-index.json"
+    },
+    {
+      "issuer_id": "43490",
+      "state": "KS",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "61779",
+      "state": "KS",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "63790",
+      "state": "KS",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "94248",
+      "state": "KS",
+      "index_url": "https://www.bluekc.com/cms-data/index.json"
+    },
+    {
+      "issuer_id": "94968",
+      "state": "KS",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "95038",
+      "state": "KS",
+      "index_url": "https://cmsdata.providers4you.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "11904",
+      "state": "LA",
+      "index_url": "https://dentaquest.com/getattachment/Marketplace/CMSDataIndex/cms-data-index.json"
+    },
+    {
+      "issuer_id": "18802",
+      "state": "LA",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "19636",
+      "state": "LA",
+      "index_url": "https://www.lablue.com/acadirectory/19636/19636Index.json"
+    },
+    {
+      "issuer_id": "28419",
+      "state": "LA",
+      "index_url": "https://cmsdata.providers4you.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "38246",
+      "state": "LA",
+      "index_url": "https://www.amerihealthcaritasnext.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "44965",
+      "state": "LA",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "69842",
+      "state": "LA",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "78461",
+      "state": "LA",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "87390",
+      "state": "LA",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "90787",
+      "state": "LA",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "97176",
+      "state": "LA",
+      "index_url": "https://www.lablue.com/acadirectory/97176/97176Index.json"
+    },
+    {
+      "issuer_id": "98780",
+      "state": "LA",
+      "index_url": "https://chppayment.christushealth.org/workfiles/json/index.json"
+    },
+    {
+      "issuer_id": "15560",
+      "state": "MI",
+      "index_url": "https://www.bcbsm.com/amslibs/content/dam/public/marketplace/individual/json/bcbsm/index.json"
+    },
+    {
+      "issuer_id": "15676",
+      "state": "MI",
+      "index_url": "https://www.dominionnational.com/Resources/dominion/index.json"
+    },
+    {
+      "issuer_id": "29698",
+      "state": "MI",
+      "index_url": "https://priorityhealth.stylelabs.cloud/api/public/content/index.json"
+    },
+    {
+      "issuer_id": "31256",
+      "state": "MI",
+      "index_url": "https://dencap.com/json/cms-data-index.json"
+    },
+    {
+      "issuer_id": "34930",
+      "state": "MI",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "35700",
+      "state": "MI",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "58594",
+      "state": "MI",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "62294",
+      "state": "MI",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "63631",
+      "state": "MI",
+      "index_url": "https://api.solsticebenefits.com/v1/Providers/Cms/GetIndex.json"
+    },
+    {
+      "issuer_id": "66587",
+      "state": "MI",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "71667",
+      "state": "MI",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "74917",
+      "state": "MI",
+      "index_url": "https://www.mclaren.org/Uploads/Public/Documents/HealthPlan/documents/CMSUploads/cms-data-index.json"
+    },
+    {
+      "issuer_id": "77739",
+      "state": "MI",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "88507",
+      "state": "MI",
+      "index_url": "https://emihealth.com/Services/providerdata/cms-data-index.json"
+    },
+    {
+      "issuer_id": "95233",
+      "state": "MI",
+      "index_url": "https://portal.insuringsmiles.com/machinereadablefiles/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "98185",
+      "state": "MI",
+      "index_url": "https://www.bcbsm.com/amslibs/content/dam/public/marketplace/individual/json/bcn/index.json"
+    },
+    {
+      "issuer_id": "29416",
+      "state": "MO",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "30613",
+      "state": "MO",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "32753",
+      "state": "MO",
+      "index_url": "https://www22.elevancehealth.com/cms-data-index-json/Elevance-Health-Data-Index.json"
+    },
+    {
+      "issuer_id": "34762",
+      "state": "MO",
+      "index_url": "https://www.bluekc.com/cms-data/index.json"
+    },
+    {
+      "issuer_id": "35853",
+      "state": "MO",
+      "index_url": "https://cmsdata.providers4you.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "40519",
+      "state": "MO",
+      "index_url": "https://emihealth.com/Services/providerdata/cms-data-index.json"
+    },
+    {
+      "issuer_id": "43512",
+      "state": "MO",
+      "index_url": "https://www.dominionnational.com/Resources/dominion/index.json"
+    },
+    {
+      "issuer_id": "47840",
+      "state": "MO",
+      "index_url": "https://www.medica.com/mrf/index/MO2.json"
+    },
+    {
+      "issuer_id": "48786",
+      "state": "MO",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "53461",
+      "state": "MO",
+      "index_url": "https://esbgatewaypub.medica.com/rest/QHP/MO/53461/cms-data-index.json"
+    },
+    {
+      "issuer_id": "58883",
+      "state": "MO",
+      "index_url": "https://dentaquest.com/getattachment/Marketplace/CMSDataIndex/cms-data-index.json"
+    },
+    {
+      "issuer_id": "69512",
+      "state": "MO",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "82905",
+      "state": "MO",
+      "index_url": "https://qhp.truassure.com/cmsdata/index.json"
+    },
+    {
+      "issuer_id": "95426",
+      "state": "MO",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "96384",
+      "state": "MO",
+      "index_url": "https://www.thinkinghealthforward.com/Index.json"
+    },
+    {
+      "issuer_id": "99723",
+      "state": "MO",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "11324",
+      "state": "MS",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "20635",
+      "state": "MS",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "48963",
+      "state": "MS",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "49327",
+      "state": "MS",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "49374",
+      "state": "MS",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "56766",
+      "state": "MS",
+      "index_url": "https://www.cigna.com/sites/json/cms-data-index.json"
+    },
+    {
+      "issuer_id": "79975",
+      "state": "MS",
+      "index_url": "https://www.molinahealthcare.com/cms/json/index.json"
+    },
+    {
+      "issuer_id": "84254",
+      "state": "MS",
+      "index_url": "https://cmsdata.providers4you.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "90714",
+      "state": "MS",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "97560",
+      "state": "MS",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "23603",
+      "state": "MT",
+      "index_url": "https://enroll.pacificsource.com/MRF/MT/cms-data-index.json"
+    },
+    {
+      "issuer_id": "30751",
+      "state": "MT",
+      "index_url": "https://www.bcbsmt.com/aca-json/mt/index_mt.json"
+    },
+    {
+      "issuer_id": "32225",
+      "state": "MT",
+      "index_url": "https://rmm.mhc.coop/plans_providers/32225_MT_Index_2026.json"
+    },
+    {
+      "issuer_id": "62818",
+      "state": "MT",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "71788",
+      "state": "MT",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "93895",
+      "state": "MT",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "11512",
+      "state": "NC",
+      "index_url": "https://www.bcbsnc.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "17414",
+      "state": "NC",
+      "index_url": "https://www.amerihealthcaritasnext.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "32237",
+      "state": "NC",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "54332",
+      "state": "NC",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "55440",
+      "state": "NC",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "56891",
+      "state": "NC",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "66759",
+      "state": "NC",
+      "index_url": "https://www.dominionnational.com/Resources/dominion/index.json"
+    },
+    {
+      "issuer_id": "69803",
+      "state": "NC",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "73943",
+      "state": "NC",
+      "index_url": "https://www.cigna.com/sites/json/cms-data-index.json"
+    },
+    {
+      "issuer_id": "77264",
+      "state": "NC",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "82612",
+      "state": "NC",
+      "index_url": "https://qhp.truassure.com/cmsdata/index.json"
+    },
+    {
+      "issuer_id": "93383",
+      "state": "NC",
+      "index_url": "https://emihealth.com/Services/providerdata/cms-data-index.json"
+    },
+    {
+      "issuer_id": "94482",
+      "state": "NC",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "27882",
+      "state": "ND",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "37160",
+      "state": "ND",
+      "index_url": "https://www.pfpdata.com/cms-data/37160-nd/37160-index.json"
+    },
+    {
+      "issuer_id": "73751",
+      "state": "ND",
+      "index_url": "https://esbgatewaypub.medica.com/rest/QHP/ND/73751/cms-data-index.json"
+    },
+    {
+      "issuer_id": "75329",
+      "state": "ND",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "89364",
+      "state": "ND",
+      "index_url": "https://tools.sanfordhealthplan.com/json/index.json"
+    },
+    {
+      "issuer_id": "13484",
+      "state": "NE",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "20305",
+      "state": "NE",
+      "index_url": "https://esbgatewaypub.medica.com/rest/QHP/NE/20305/cms-data-index.json"
+    },
+    {
+      "issuer_id": "29678",
+      "state": "NE",
+      "index_url": "https://cms.nebraskablue.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "45550",
+      "state": "NE",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "48282",
+      "state": "NE",
+      "index_url": "https://qhp.truassure.com/cmsdata/index.json"
+    },
+    {
+      "issuer_id": "50022",
+      "state": "NE",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "57424",
+      "state": "NE",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "73102",
+      "state": "NE",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "98048",
+      "state": "NE",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "13219",
+      "state": "NH",
+      "index_url": "https://connect.wellsense.org:8443/NHACA_MRF/data/cms-data-index.json"
+    },
+    {
+      "issuer_id": "57601",
+      "state": "NH",
+      "index_url": "https://www22.elevancehealth.com/cms-data-index-json/Elevance-Health-Data-Index.json"
+    },
+    {
+      "issuer_id": "59025",
+      "state": "NH",
+      "index_url": "https://www.harvardpilgrim.org/cmsjson/rest/index.json"
+    },
+    {
+      "issuer_id": "72953",
+      "state": "NH",
+      "index_url": "https://cmsdata.providers4you.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "75841",
+      "state": "NH",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "87701",
+      "state": "NH",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "96751",
+      "state": "NH",
+      "index_url": "https://www22.elevancehealth.com/cms-data-index-json/Elevance-Health-Data-Index.json"
+    },
+    {
+      "issuer_id": "25945",
+      "state": "OH",
+      "index_url": "https://portal.insuringsmiles.com/machinereadablefiles/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "29276",
+      "state": "OH",
+      "index_url": "https://www22.elevancehealth.com/cms-data-index-json/Elevance-Health-Data-Index.json"
+    },
+    {
+      "issuer_id": "29341",
+      "state": "OH",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "31981",
+      "state": "OH",
+      "index_url": "https://api.antidotehealth.ai/antidote-index-oh-2026.json"
+    },
+    {
+      "issuer_id": "33931",
+      "state": "OH",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "34964",
+      "state": "OH",
+      "index_url": "https://dentaquest.com/getattachment/Marketplace/CMSDataIndex/cms-data-index.json"
+    },
+    {
+      "issuer_id": "41047",
+      "state": "OH",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "44346",
+      "state": "OH",
+      "index_url": "https://emihealth.com/Services/providerdata/cms-data-index.json"
+    },
+    {
+      "issuer_id": "45845",
+      "state": "OH",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "47509",
+      "state": "OH",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "52664",
+      "state": "OH",
+      "index_url": "https://files.myplancentral.com/ACA/cms-data-index.json"
+    },
+    {
+      "issuer_id": "56726",
+      "state": "OH",
+      "index_url": "https://api.solsticebenefits.com/v1/Providers/Cms/GetIndex.json"
+    },
+    {
+      "issuer_id": "64353",
+      "state": "OH",
+      "index_url": "https://www.molinahealthcare.com/cms/json/index.json"
+    },
+    {
+      "issuer_id": "68158",
+      "state": "OH",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "70455",
+      "state": "OH",
+      "index_url": "https://www.dominionnational.com/Resources/dominion/index.json"
+    },
+    {
+      "issuer_id": "74313",
+      "state": "OH",
+      "index_url": "https://www.myparamount.org/machinereadablefiles/cms-data-index.json"
+    },
+    {
+      "issuer_id": "77552",
+      "state": "OH",
+      "index_url": "https://caresource.com/vendor/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "86728",
+      "state": "OH",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "89819",
+      "state": "OH",
+      "index_url": "https://qhp.truassure.com/cmsdata/index.json"
+    },
+    {
+      "issuer_id": "97596",
+      "state": "OH",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "99969",
+      "state": "OH",
+      "index_url": "https://providersearch.medmutual.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "12513",
+      "state": "OK",
+      "index_url": "https://qhp.truassure.com/cmsdata/index.json"
+    },
+    {
+      "issuer_id": "13711",
+      "state": "OK",
+      "index_url": "https://cmsdata.providers4you.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "21333",
+      "state": "OK",
+      "index_url": "https://esbgatewaypub.medica.com/rest/QHP/OK/21333/cms-data-index.json"
+    },
+    {
+      "issuer_id": "23468",
+      "state": "OK",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "40254",
+      "state": "OK",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "45480",
+      "state": "OK",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "58944",
+      "state": "OK",
+      "index_url": "https://static.mending.com/json/cms-data-index.json"
+    },
+    {
+      "issuer_id": "62505",
+      "state": "OK",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "81457",
+      "state": "OK",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "87571",
+      "state": "OK",
+      "index_url": "https://www.bcbsok.com/aca-json/ok/index_ok.json"
+    },
+    {
+      "issuer_id": "91908",
+      "state": "OK",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "98905",
+      "state": "OK",
+      "index_url": "https://secure.ccok.com/json/index.json"
+    },
+    {
+      "issuer_id": "10091",
+      "state": "OR",
+      "index_url": "https://enroll.pacificsource.com/MRF/OR/cms-data-index.json"
+    },
+    {
+      "issuer_id": "25486",
+      "state": "OR",
+      "index_url": "https://www.dentalhealthservices.com/files/index.json"
+    },
+    {
+      "issuer_id": "28415",
+      "state": "OR",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "39424",
+      "state": "OR",
+      "index_url": "https://www.modahealth.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "56707",
+      "state": "OR",
+      "index_url": "https://www.providencehealthplan.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "63474",
+      "state": "OR",
+      "index_url": "https://cms-machine-readable.cambiahealth.com/index.json"
+    },
+    {
+      "issuer_id": "68420",
+      "state": "OR",
+      "index_url": "https://www.dentegra.com/hcx/cms-data-index.json"
+    },
+    {
+      "issuer_id": "71287",
+      "state": "OR",
+      "index_url": "https://healthy.kaiserpermanente.org/content/dam/kporg/data/or/cms-data-index.json"
+    },
+    {
+      "issuer_id": "77969",
+      "state": "OR",
+      "index_url": "https://cms-machine-readable.cambiahealth.com/index.json"
+    },
+    {
+      "issuer_id": "98884",
+      "state": "OR",
+      "index_url": "https://www.dominionnational.com/Resources/dominion/index.json"
+    },
+    {
+      "issuer_id": "26065",
+      "state": "SC",
+      "index_url": "https://www.southcarolinablues.com/web/data/sc/bluecross-index.json"
+    },
+    {
+      "issuer_id": "32126",
+      "state": "SC",
+      "index_url": "https://qhp.truassure.com/cmsdata/index.json"
+    },
+    {
+      "issuer_id": "33764",
+      "state": "SC",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "33863",
+      "state": "SC",
+      "index_url": "https://www.instilhealth.com/web/data/sc/instil-index.json"
+    },
+    {
+      "issuer_id": "42326",
+      "state": "SC",
+      "index_url": "https://www.molinahealthcare.com/cms/json/index.json"
+    },
+    {
+      "issuer_id": "47973",
+      "state": "SC",
+      "index_url": "https://emihealth.com/Services/providerdata/cms-data-index.json"
+    },
+    {
+      "issuer_id": "73107",
+      "state": "SC",
+      "index_url": "https://www.firstchoicenext.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "79222",
+      "state": "SC",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "84939",
+      "state": "SC",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "89281",
+      "state": "SC",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "97325",
+      "state": "SC",
+      "index_url": "https://cmsdata.providers4you.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "31195",
+      "state": "SD",
+      "index_url": "https://tools.sanfordhealthplan.com/json/index.json"
+    },
+    {
+      "issuer_id": "50305",
+      "state": "SD",
+      "index_url": "https://public-cdn.wellmark.com/json/WSD/index.json"
+    },
+    {
+      "issuer_id": "60536",
+      "state": "SD",
+      "index_url": "https://www.ahsecure.net/CMS/index.json"
+    },
+    {
+      "issuer_id": "61214",
+      "state": "SD",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "14002",
+      "state": "TN",
+      "index_url": "https://www.bcbst.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "23552",
+      "state": "TN",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "24601",
+      "state": "TN",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "28398",
+      "state": "TN",
+      "index_url": "https://qhp.truassure.com/cmsdata/index.json"
+    },
+    {
+      "issuer_id": "29854",
+      "state": "TN",
+      "index_url": "https://alliantplans.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "43878",
+      "state": "TN",
+      "index_url": "https://dentaquest.com/getattachment/Marketplace/CMSDataIndex/cms-data-index.json"
+    },
+    {
+      "issuer_id": "69443",
+      "state": "TN",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "70111",
+      "state": "TN",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "82120",
+      "state": "TN",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "90402",
+      "state": "TN",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "97536",
+      "state": "TN",
+      "index_url": "https://emihealth.com/Services/providerdata/cms-data-index.json"
+    },
+    {
+      "issuer_id": "99248",
+      "state": "TN",
+      "index_url": "https://www.cigna.com/sites/json/cms-data-index.json"
+    },
+    {
+      "issuer_id": "11718",
+      "state": "TX",
+      "index_url": "https://providerdirectory.communityhealthchoice.org/him/index.json"
+    },
+    {
+      "issuer_id": "12846",
+      "state": "TX",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "17933",
+      "state": "TX",
+      "index_url": "https://www.modahealth.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "20069",
+      "state": "TX",
+      "index_url": "https://d3ul0st9g52g6o.cloudfront.net/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "23018",
+      "state": "TX",
+      "index_url": "https://www.dominionnational.com/Resources/dominion/index.json"
+    },
+    {
+      "issuer_id": "23891",
+      "state": "TX",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "24349",
+      "state": "TX",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "26250",
+      "state": "TX",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "27248",
+      "state": "TX",
+      "index_url": "https://providerdirectory.communityhealthchoice.org/him/index.json"
+    },
+    {
+      "issuer_id": "29418",
+      "state": "TX",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "33602",
+      "state": "TX",
+      "index_url": "https://www.bcbstx.com/aca-json/tx/index_tx.json"
+    },
+    {
+      "issuer_id": "33626",
+      "state": "TX",
+      "index_url": "https://api.solsticebenefits.com/v1/Providers/Cms/GetIndex.json"
+    },
+    {
+      "issuer_id": "34826",
+      "state": "TX",
+      "index_url": "https://fm.formularynavigator.com/jsonFiles/publish/200/270/cms-data-index.json"
+    },
+    {
+      "issuer_id": "37758",
+      "state": "TX",
+      "index_url": "https://assets.harborhealth.com/qhp/mrf/index.json"
+    },
+    {
+      "issuer_id": "40220",
+      "state": "TX",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "40540",
+      "state": "TX",
+      "index_url": "https://cmsdata.providers4you.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "40788",
+      "state": "TX",
+      "index_url": "https://my.firstcare.com/CMS/MachineReadableFormat/swhp/cms-data-index.json"
+    },
+    {
+      "issuer_id": "45786",
+      "state": "TX",
+      "index_url": "https://www.molinahealthcare.com/cms/json/index.json"
+    },
+    {
+      "issuer_id": "47501",
+      "state": "TX",
+      "index_url": "https://www22.elevancehealth.com/cms-data-index-json/Elevance-Health-Data-Index.json"
+    },
+    {
+      "issuer_id": "47665",
+      "state": "TX",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "58609",
+      "state": "TX",
+      "index_url": "https://dentaquest.com/getattachment/Marketplace/CMSDataIndex/cms-data-index.json"
+    },
+    {
+      "issuer_id": "61315",
+      "state": "TX",
+      "index_url": "https://qhp.truassure.com/cmsdata/index.json"
+    },
+    {
+      "issuer_id": "63141",
+      "state": "TX",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "63251",
+      "state": "TX",
+      "index_url": "https://exchange.communityfirsthealthplans.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "66252",
+      "state": "TX",
+      "index_url": "https://chppayment.christushealth.org/workfiles/json/index.json"
+    },
+    {
+      "issuer_id": "70754",
+      "state": "TX",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "71837",
+      "state": "TX",
+      "index_url": "https://senderohealth.com/files/json/index.json"
+    },
+    {
+      "issuer_id": "76589",
+      "state": "TX",
+      "index_url": "https://www.cigna.com/sites/json/cms-data-index.json"
+    },
+    {
+      "issuer_id": "87226",
+      "state": "TX",
+      "index_url": "https://api.centene.com/ambetter/reference/cms-data-index.json"
+    },
+    {
+      "issuer_id": "91476",
+      "state": "TX",
+      "index_url": "https://emihealth.com/Services/providerdata/cms-data-index.json"
+    },
+    {
+      "issuer_id": "98809",
+      "state": "TX",
+      "index_url": "https://api.solsticebenefits.com/v1/Providers/Cms/GetIndex.json"
+    },
+    {
+      "issuer_id": "14948",
+      "state": "UT",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "18167",
+      "state": "UT",
+      "index_url": "https://www.molinahealthcare.com/cms/json/index.json"
+    },
+    {
+      "issuer_id": "22013",
+      "state": "UT",
+      "index_url": "https://cms-machine-readable.cambiahealth.com/index.json"
+    },
+    {
+      "issuer_id": "34028",
+      "state": "UT",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "34541",
+      "state": "UT",
+      "index_url": "https://cms-machine-readable.cambiahealth.com/index.json"
+    },
+    {
+      "issuer_id": "40335",
+      "state": "UT",
+      "index_url": "https://emihealth.com/Services/providerdata/cms-data-index.json"
+    },
+    {
+      "issuer_id": "42261",
+      "state": "UT",
+      "index_url": "https://doc.uhealthplan.utah.edu/individual/json/42261_UT_index.json"
+    },
+    {
+      "issuer_id": "42757",
+      "state": "UT",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "46958",
+      "state": "UT",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "68781",
+      "state": "UT",
+      "index_url": "https://ebu.intermountainhealthcare.org/shprovider/index.json"
+    },
+    {
+      "issuer_id": "71246",
+      "state": "UT",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "87169",
+      "state": "UT",
+      "index_url": "https://cmsdata.providers4you.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "97462",
+      "state": "UT",
+      "index_url": "https://api.solsticebenefits.com/v1/Providers/Cms/GetIndex.json"
+    },
+    {
+      "issuer_id": "98113",
+      "state": "UT",
+      "index_url": "https://fm.formularynavigator.com/jsonFiles/publish/200/272/cms-data-index.json"
+    },
+    {
+      "issuer_id": "20173",
+      "state": "WI",
+      "index_url": "https://www.healthpartners.com/cms/ffm/cms-data-index.json"
+    },
+    {
+      "issuer_id": "34210",
+      "state": "WI",
+      "index_url": "https://cmsdata.providers4you.com/cms-data-index.json"
+    },
+    {
+      "issuer_id": "37833",
+      "state": "WI",
+      "index_url": "https://apps.quartzbenefits.com/cmsfiles/CMS-INDEX-JSON.json"
+    },
+    {
+      "issuer_id": "38166",
+      "state": "WI",
+      "index_url": "https://shp-web-public.s3.amazonaws.com/PRD/exchange/cms-data-index.json"
+    },
+    {
+      "issuer_id": "38345",
+      "state": "WI",
+      "index_url": "https://www.medica.com/mrf/index/WI2.json"
+    },
+    {
+      "issuer_id": "57845",
+      "state": "WI",
+      "index_url": "https://esbgatewaypub.medica.com/rest/QHP/WI/57845/cms-data-index.json"
+    },
+    {
+      "issuer_id": "58326",
+      "state": "WI",
+      "index_url": "https://www.mercycarehealthplans.com/wp-content/uploads/JSON/cms-data-index.json"
+    },
+    {
+      "issuer_id": "65736",
+      "state": "WI",
+      "index_url": "https://www.dominionnational.com/Resources/dominion/index.json"
+    },
+    {
+      "issuer_id": "69380",
+      "state": "WI",
+      "index_url": "https://emihealth.com/Services/providerdata/cms-data-index.json"
+    },
+    {
+      "issuer_id": "69589",
+      "state": "WI",
+      "index_url": "https://dentalexchange.guardiandirect.com/secure/json/index.json"
+    },
+    {
+      "issuer_id": "79475",
+      "state": "WI",
+      "index_url": "https://www22.elevancehealth.com/cms-data-index-json/Elevance-Health-Data-Index.json"
+    },
+    {
+      "issuer_id": "79597",
+      "state": "WI",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "80180",
+      "state": "WI",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "81413",
+      "state": "WI",
+      "index_url": "https://data.networkhealth.com/hix/index.json"
+    },
+    {
+      "issuer_id": "86584",
+      "state": "WI",
+      "index_url": "https://www.aspirushealthplan.com/group-individual/files/json/index.json"
+    },
+    {
+      "issuer_id": "87416",
+      "state": "WI",
+      "index_url": "https://caresource.com/vendor/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "90028",
+      "state": "WI",
+      "index_url": "https://www22.elevancehealth.com/cms-data-index-json/Elevance-Health-Data-Index.json"
+    },
+    {
+      "issuer_id": "91604",
+      "state": "WI",
+      "index_url": "https://apis.humana.com/v1/cms/index.json"
+    },
+    {
+      "issuer_id": "94529",
+      "state": "WI",
+      "index_url": "https://planfinder.ghcscw.com/cms/index.json"
+    },
+    {
+      "issuer_id": "31274",
+      "state": "WV",
+      "index_url": "https://www.pfpdata.com/cms-data/31274-wv/31274-index.json"
+    },
+    {
+      "issuer_id": "50328",
+      "state": "WV",
+      "index_url": "https://caresource.com/vendor/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "76526",
+      "state": "WV",
+      "index_url": "https://cms.deltadental.com/index.json"
+    },
+    {
+      "issuer_id": "11269",
+      "state": "WY",
+      "index_url": "https://www.pfpdata.com/cms-data/11269-wy/11269-index.json"
+    },
+    {
+      "issuer_id": "34588",
+      "state": "WY",
+      "index_url": "https://emihealth.com/Services/providerdata/cms-data-index.json"
+    },
+    {
+      "issuer_id": "47731",
+      "state": "WY",
+      "index_url": "https://json.bestlife.com/cms/cms-data-index.json"
+    },
+    {
+      "issuer_id": "49714",
+      "state": "WY",
+      "index_url": "https://www.uhc.com/content/dam/uhcdotcom/en/general/cms-data-index.json"
+    },
+    {
+      "issuer_id": "80132",
+      "state": "WY",
+      "index_url": "https://cmsdata.providers4you.com/cms-data-index.json"
+    }
+  ]
+}

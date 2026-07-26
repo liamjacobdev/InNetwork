@@ -1,0 +1,129 @@
+# Rail 4 — harvest every Marketplace (QHP) issuer's machine-readable provider directory
+# into PLAN-LEVEL membership bitmaps.
+#
+# This is the broadest rail InNetwork has. Rails 1-3 grow one payer at a time, by a human
+# researching that payer; this one reads a government file — the CMS Machine-Readable URL
+# PUF — and harvests every Federally-Facilitated-Exchange issuer in one pass.
+#
+# Measured against the live PY2026 corpus (2026-07-24), so the budget below is real, not
+# guessed:
+#   • 346 issuer rows -> 108 distinct index.json URLs (issuers share indexes across states)
+#   • 4,294 provider files, ~59 GB total, largest single file ~345 MB
+#   • ijson streams at ~38 MB/s -> ~26 min of parsing, plus download
+#   • ~10 of 108 indexes are unreachable (403/404) on any given day — issuer-side reality,
+#     tolerated per-issuer rather than failing the run
+#
+# Why it fits a free runner where Rail 2 struggles: these files are megabytes, not the
+# 3.3 GB-1 TB of Transparency-in-Coverage. Disk is never the constraint.
+#
+# Trust: `app.harvest_marketplace` writes an issuer ONLY if its fan-out was complete and
+# each distinct network passed the gate (Luhn + discrimination + NPPES positive control).
+# An issuer that fails keeps its last-good bitmaps and lets /healthz staleness surface —
+# a partial network would read as a fabricated "no" for the providers it omitted.
+#
+# Race-free by design: one sequential job owns payers/manifest.json, then commits once.
+name: "Rail 4 (Marketplace): harvest plan-level bitmaps"
+
+on:
+  schedule:
+    - cron: "17 6 12 * *"   # monthly, ~06:17 UTC on the 12th (offset from Rails 1 and 2)
+  workflow_dispatch:
+    inputs:
+      index_url:
+        description: "Harvest a SINGLE issuer index.json (skips the registry). Blank = all issuers."
+        required: false
+        default: ""
+      state:
+        description: "Only issuers filed under this 2-letter state (e.g. TX). Blank = all."
+        required: false
+        default: ""
+      max_issuers:
+        description: "Cap the number of issuer indexes (recon). Blank = all."
+        required: false
+        default: ""
+      max_files:
+        description: "Cap provider files per issuer — a PROBE run; the completeness guard makes it write nothing."
+        required: false
+        default: ""
+      refresh_registry:
+        description: "Re-download the CMS MR-PUF and rewrite marketplace_sources.json first."
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: harvest-marketplace
+  cancel-in-progress: false
+
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350   # under the 6h job cap; an unfinished run commits nothing new
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install runtime deps
+        run: pip install -r requirements.txt
+
+      # The PUF is republished each plan year, and `resolve_latest_url` probes newer years
+      # first — so a new plan year is picked up automatically rather than silently serving
+      # last year's issuer list.
+      - name: Refresh the issuer registry from the CMS MR-PUF
+        if: ${{ github.event.inputs.refresh_registry != 'false' }}
+        run: python -m app.marketplace_registry --refresh
+
+      - name: Harvest issuers into plan-level bitmaps (complete + gated only are written)
+        env:
+          INDEX_URL: ${{ github.event.inputs.index_url }}
+          STATE: ${{ github.event.inputs.state }}
+          MAX_ISSUERS: ${{ github.event.inputs.max_issuers }}
+          MAX_FILES: ${{ github.event.inputs.max_files }}
+        run: |
+          set -u
+          ARGS=""
+          if [ -n "${INDEX_URL}" ];   then ARGS="$ARGS --index-url ${INDEX_URL}"; fi
+          if [ -n "${STATE}" ];       then ARGS="$ARGS --state ${STATE}"; fi
+          if [ -n "${MAX_ISSUERS}" ]; then ARGS="$ARGS --max-issuers ${MAX_ISSUERS}"; fi
+          if [ -n "${MAX_FILES}" ];   then ARGS="$ARGS --max-files ${MAX_FILES}"; fi
+          echo "Harvesting with:${ARGS:- (all issuers)}"
+          # Non-fatal by design: per-issuer failures are expected (issuer 403s/404s) and
+          # each one simply keeps its last-good bitmaps. A hard failure here would block
+          # the ~100 issuers that DID harvest cleanly.
+          python -m app.harvest_marketplace $ARGS || \
+            echo "harvest exited non-zero — issuers that completed were still written."
+
+      - name: Summarize coverage
+        run: |
+          python - <<'PY'
+          import collections, json, pathlib
+          p = pathlib.Path("payers/manifest.json")
+          payers = json.loads(p.read_text(encoding="utf-8")).get("payers", {}) if p.exists() else {}
+          by_method = collections.Counter(v.get("method", "?") for v in payers.values())
+          mrf = {k: v for k, v in payers.items() if v.get("method") == "marketplace-mrf"}
+          states = sorted({s for v in mrf.values() for s in (v.get("states") or [])})
+          blobs = {v["file"] for v in mrf.values()}
+          print(f"payers total       : {len(payers)}")
+          print(f"by method          : {dict(by_method)}")
+          print(f"marketplace plans  : {len(mrf)} over {len(blobs)} blob(s)")
+          print(f"states covered     : {len(states)} {states}")
+          PY
+
+      - name: Commit refreshed bitmaps
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add payers/ marketplace_sources.json
+          if git diff --cached --quiet; then
+            echo "No Marketplace bitmap changed this run."
+          else
+            git commit -m "data: refresh verified Marketplace plan bitmaps (auto)"
+            git push
+            echo "Pushed refreshed Marketplace bitmaps — Vercel will redeploy."
+          fi

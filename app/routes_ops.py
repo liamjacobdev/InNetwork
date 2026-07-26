@@ -3,6 +3,7 @@ readiness (/readyz), metrics, the verified-coverage report, and the token-secure
 background ingest trigger. Not under /api/, so they aren't rate-limited."""
 import logging
 import time
+from collections import Counter
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query, Response
@@ -13,6 +14,19 @@ from .insurance import registry
 
 router = APIRouter()
 log = logging.getLogger("innetwork")
+
+# How many per-source rows /healthz will serialize. Below this every source is reported
+# (small deployments keep full visibility); above it, stale sources are always reported and
+# healthy ones are truncated, so the endpoint stays small at thousands of plan-level payers.
+_MAX_SOURCE_ROWS = 50
+
+# Share of tracked sources that must be stale before the dead-man's-switch trips. The
+# switch exists to catch a STALLED PIPELINE, not one flaky issuer: with thousands of
+# Marketplace plans, a single payer that failed to refresh must not take the service down.
+# Medicare is exempt from the share test — it is the national backbone, so its staleness
+# alone is always a 503.
+_STALE_SHARE_TRIPS = 0.25
+_CRITICAL_SOURCES = ("medicare",)
 
 
 def _data_freshness() -> dict[str, Any]:
@@ -49,7 +63,26 @@ def _data_freshness() -> dict[str, Any]:
                         "slo_days": max_days, "stale": is_stale})
         if is_stale:
             stale.append(sid)
-    return {"sources": sources, "stale": stale, "slos_met": not stale}
+
+    tracked = len(sources)
+    # Stale rows are reported FIRST (they are why anyone reads this), then healthy ones
+    # fill any remaining budget — but the total is hard-capped either way. Exempting stale
+    # rows from the cap would blow the payload open in precisely the case the cap exists
+    # for: a whole rail going stale at once.
+    stale_rows = [s for s in sources if s["stale"]]
+    if tracked > _MAX_SOURCE_ROWS:
+        fresh_rows = [s for s in sources if not s["stale"]]
+        sources = (stale_rows + fresh_rows)[:_MAX_SOURCE_ROWS]
+    share = (len(stale_rows) / tracked) if tracked else 0.0
+    critical_stale = [s for s in stale if s in _CRITICAL_SOURCES]
+    slos_met = not critical_stale and share <= _STALE_SHARE_TRIPS
+    # The id list is capped too: the failure this endpoint must survive is a whole rail
+    # going stale at once, which would otherwise put thousands of ids back in the payload.
+    # `stale_count` carries the real magnitude.
+    return {"sources": sources, "sources_truncated": tracked > len(sources),
+            "tracked": tracked, "stale": stale[:_MAX_SOURCE_ROWS],
+            "stale_count": len(stale_rows), "stale_share": round(share, 4),
+            "critical_stale": critical_stale, "slos_met": slos_met}
 
 
 def _medicare_count() -> int:
@@ -64,12 +97,24 @@ def _medicare_count() -> int:
 @router.get("/healthz")
 def healthz(response: Response) -> dict[str, Any]:
     """Liveness + data-freshness. Flips to 503 (the dead-man's-switch an uptime monitor
-    watches) when a tracked source — harvested bitmap or legacy ingest — has gone stale."""
+    watches) when a tracked source — harvested bitmap or legacy ingest — has gone stale.
+
+    Reports plan COUNTS rather than the full plan list. With Rail 4 the catalog runs to
+    thousands of plan-level entries, and a health endpoint that serialized all of them
+    would be megabytes — too heavy for the per-minute uptime check it exists to serve.
+    `/api/insurance/plans` remains the place to enumerate them.
+    """
     fresh = _data_freshness()
     if not fresh["slos_met"]:
         response.status_code = 503
+    plans = registry.plans()
     return {"ok": fresh["slos_met"], "medicare_npis": _medicare_count(),
-            "insurance_plans": registry.plans(), "data_freshness": fresh}
+            "insurance_plans": {
+                "total": len(plans),
+                "verified": sum(1 for p in plans if p["confidence"] == "verified"),
+                "by_category": dict(Counter(p["category"] for p in plans)),
+            },
+            "data_freshness": fresh}
 
 
 @router.get("/readyz")

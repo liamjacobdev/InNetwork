@@ -175,10 +175,17 @@ app.include_router(routes_ops.router)
 
 
 @app.get("/api/insurance/plans")
-def insurance_plans() -> dict[str, Any]:
+def insurance_plans(
+    state: str = Query("", description="2-letter state code; narrows the list to plans "
+                                       "that operate there (national + that state's "
+                                       "regional plans). Blank returns every plan."),
+) -> dict[str, Any]:
     """Filterable plans — flat list plus grouped by coverage category. Each plan
-    carries a `confidence` of 'verified' or 'estimated'."""
-    return {"plans": registry.plans(), "categories": registry.categories()}
+    carries a `confidence` of 'verified' or 'estimated', and `states` (null = national)."""
+    st = state.strip().upper()[:2]
+    plans = registry.plans(st)
+    return {"plans": plans, "categories": registry.categories(st),
+            "state": st, "total": len(plans)}
 
 
 @app.get("/api/insurance/{npi}")

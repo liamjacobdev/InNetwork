@@ -191,6 +191,11 @@ const state = {
   plans: [],
   categories: [],
   selectedPlans: [],
+  // Plan-picker state. `planState` is the 2-letter code the plan list is currently scoped
+  // to (''=national list); `planQuery` is the picker's type-to-filter text. Both exist
+  // because plan-level coverage runs to thousands of entries — see renderInsuranceFilter.
+  planState: '',
+  planQuery: '',
   radius: 0,
   backendReachable: null,
 };
@@ -611,6 +616,9 @@ async function handleSearch() {
         if (mapInstance) plotMarkers(); // coords are already attached — pins now, no wait
         setResultsCount(`${providers.length} provider${providers.length !== 1 ? 's' : ''} found`);
         finishSearch();
+        // Narrow the plan picker to where the user is actually searching. Deliberately
+        // after finishSearch(): results must never wait on a plan-list refresh.
+        rescopePlans(inferSearchState(f, providers));
         return;
       }
       // Backend unreachable. The CMS registry does NOT allow direct browser calls
@@ -740,21 +748,63 @@ function finishSearch() {
 }
 
 /* ── Insurance plans (real, from the backend) ── */
-async function loadPlans() {
+async function loadPlans(st) {
   if (!HAS_BACKEND) return;
+  const scope = (st || '').trim().toUpperCase();
   try {
-    const res = await fetch(`${API_BASE}/api/insurance/plans`, {
+    const qs = scope ? `?state=${encodeURIComponent(scope)}` : '';
+    const res = await fetch(`${API_BASE}/api/insurance/plans${qs}`, {
       headers: { Accept: 'application/json' },
       signal: AbortSignal.timeout(8000),
     });
     const data = await res.json();
     state.plans = data.plans || [];
     state.categories = data.categories || [];
+    state.planState = scope;
   } catch (_) {
-    state.plans = [];
-    state.categories = [];
+    // A failed fetch is not evidence that there are no plans, so it must never CLEAR the
+    // ones already loaded. This matters because of re-scoping: the list is refetched after
+    // every search, and clobbering it on a transient failure would make the whole insurance
+    // filter — including the user's active selections — vanish mid-session. On the very
+    // first load there is nothing to keep, so this still degrades to an empty filter.
+    state.plans = state.plans || [];
+    state.categories = state.categories || [];
   }
   renderInsuranceFilter();
+}
+
+/* Re-scope the plan list to the state the user is actually searching. Plan-level coverage
+ * is mostly REGIONAL — a Marketplace plan sold only in Alaska is noise for a Texan, and
+ * offering it invites a filter that can only ever return nothing. Scoping happens on the
+ * server (?state=), so the browser never receives thousands of irrelevant plans. Any plan
+ * the user already selected is kept, even if it falls outside the new scope, so re-scoping
+ * can never silently drop an active filter. */
+async function rescopePlans(st) {
+  const scope = (st || '').trim().toUpperCase();
+  if (!HAS_BACKEND || !scope || scope === state.planState) return;
+  const keep = state.selectedPlans.slice();
+  await loadPlans(scope);
+  state.selectedPlans = keep;
+  renderInsuranceFilter();
+}
+
+/* The state to scope plans to: what the user typed, else the state most of the results are
+ * in (a ZIP search never names a state, but its results do). */
+function inferSearchState(f, providers) {
+  if (f && f.st) return f.st;
+  const counts = {};
+  for (const p of providers || []) {
+    const s = (p.stateAb || '').toUpperCase();
+    if (s) counts[s] = (counts[s] || 0) + 1;
+  }
+  let best = '',
+    n = 0;
+  for (const s in counts)
+    if (counts[s] > n) {
+      best = s;
+      n = counts[s];
+    }
+  return best;
 }
 function renderInsuranceFilter() {
   const field = byId('insurance-field');
@@ -772,28 +822,71 @@ function renderInsuranceFilter() {
   // acceptance from a real source for each provider — a harvested membership set, a
   // live-validated FHIR directory, or the CMS Medicare file. Unverifiable "estimated"
   // catalog payers are deliberately not surfaced: the product shows what it can prove.
+  // Type-to-filter, applied to the label. With plan-level coverage a category can hold
+  // hundreds of plans ("Blue Cross Premier PPO Gold", "…Silver", "…Bronze Saver HSA"), and
+  // scanning a scroll box for yours is hopeless — searching for it is not. A selected plan
+  // always renders, whatever the query, so a filter you turned on can never hide itself.
+  const q = (state.planQuery || '').trim().toLowerCase();
+  const matches = (pl) => state.selectedPlans.includes(pl.id) || !q || pl.label.toLowerCase().includes(q);
+
+  const chipFor = (pl) => {
+    const on = state.selectedPlans.includes(pl.id);
+    const title =
+      pl.level === 'plan' ? 'Verified from a real source' : 'Verified network directory — confirm your specific plan';
+    return `<button type="button" role="checkbox" aria-checked="${on ? 'true' : 'false'}" class="ins-chip ${on ? 'checked' : ''}" data-action="toggle-plan" data-plan="${esc(pl.id)}" title="${esc(title)}">
+        <span class="tick">${on ? CHECK_SVG : ''}</span>${esc(pl.label)}<span class="conf-dot verified" aria-hidden="true"></span></button>`;
+  };
+
+  let shown = 0;
+  const verifiedTotal = cats.reduce((n, c) => n + c.plans.filter((pl) => pl.confidence === 'verified').length, 0);
   const groups = cats
     .map((c) => {
-      const plans = c.plans.filter((pl) => pl.confidence === 'verified');
+      const plans = c.plans.filter((pl) => pl.confidence === 'verified' && matches(pl));
       if (!plans.length) return '';
-      const chips = plans
-        .map((pl) => {
-          const on = state.selectedPlans.includes(pl.id);
-          const title =
-            pl.level === 'plan'
-              ? 'Verified from a real source'
-              : 'Verified network directory — confirm your specific plan';
-          return `<button type="button" role="checkbox" aria-checked="${on ? 'true' : 'false'}" class="ins-chip ${on ? 'checked' : ''}" data-action="toggle-plan" data-plan="${esc(pl.id)}" title="${esc(title)}">
-        <span class="tick">${on ? CHECK_SVG : ''}</span>${esc(pl.label)}<span class="conf-dot verified" aria-hidden="true"></span></button>`;
-        })
-        .join('');
+      shown += plans.length;
       const gid = `ins-group-${esc(c.id)}`;
-      return `<div class="ins-group" role="group" aria-labelledby="${gid}"><p class="ins-group-title" id="${gid}">${esc(c.label)}</p><div class="ins-chips">${chips}</div></div>`;
+      return `<div class="ins-group" role="group" aria-labelledby="${gid}"><p class="ins-group-title" id="${gid}">${esc(c.label)} <span class="ins-group-n">${plans.length}</span></p><div class="ins-chips">${plans.map(chipFor).join('')}</div></div>`;
     })
     .filter(Boolean)
     .join('');
+
+  // The search box only appears once the list is big enough to need it — a handful of
+  // national payers stays the plain chip list it has always been.
+  const NEEDS_SEARCH = 12;
+  const scopeNote = state.planState ? ` in <b>${esc(state.planState)}</b>` : '';
+  const search =
+    verifiedTotal > NEEDS_SEARCH
+      ? `<div class="ins-search"><input type="search" id="plan-search" class="ins-search-input" placeholder="Search your plan…" aria-label="Search insurance plans" value="${esc(state.planQuery || '')}" autocomplete="off" />
+         <span class="ins-search-n">${shown} of ${verifiedTotal} plans${scopeNote}</span></div>`
+      : '';
+  const empty =
+    verifiedTotal && !shown
+      ? `<p class="ins-empty">No plan matches “${esc(state.planQuery)}”. <button type="button" class="linklike" data-action="clear-plan-query">Clear</button></p>`
+      : '';
+  // Read focus/caret from the live DOM before it is replaced below.
+  const prev = byId('plan-search');
+  const hadFocus = !!prev && document.activeElement === prev;
+  const caret = prev && prev.selectionStart != null ? prev.selectionStart : 0;
   const legend = `<p class="ins-legend"><span class="conf-dot verified" aria-hidden="true"></span> Confirmed from a real source for each provider — never a guess.</p>`;
-  wrap.innerHTML = `${legend}<div class="ins-groups">${groups}</div>`;
+  wrap.innerHTML = `${legend}${search}<div class="ins-groups">${groups}</div>${empty}`;
+
+  const box = byId('plan-search');
+  if (box) {
+    box.addEventListener('input', () => {
+      state.planQuery = box.value;
+      renderInsuranceFilter();
+    });
+    // Re-rendering replaces the input element, so focus and caret must be carried over or
+    // typing dies after one character. The "was it focused" flag is read from the DOM
+    // BEFORE the innerHTML swap (see `hadFocus` above), not tracked with a blur listener:
+    // tearing down a focused node fires blur, which would clear the flag before the new
+    // input could read it.
+    if (hadFocus) {
+      box.focus();
+      const at = Math.min(caret, box.value.length);
+      box.setSelectionRange(at, at);
+    }
+  }
 }
 function togglePlan(id) {
   const i = state.selectedPlans.indexOf(id);
@@ -1639,6 +1732,10 @@ document.addEventListener('click', (e) => {
       break;
     case 'clear-plans':
       clearPlans();
+      break;
+    case 'clear-plan-query':
+      state.planQuery = '';
+      renderInsuranceFilter();
       break;
     case 'use-location':
       useLocation();

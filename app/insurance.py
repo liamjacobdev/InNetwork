@@ -105,23 +105,35 @@ class Registry:
             by_plan.setdefault(s.id, []).append(s)
         return by_plan
 
-    def plans(self) -> list[dict[str, Any]]:
-        """Flat list of filterable plans, best confidence per plan id."""
+    def plans(self, state: str = "") -> list[dict[str, Any]]:
+        """Flat list of filterable plans, best confidence per plan id.
+
+        `state` (a 2-letter code) narrows the list to plans that actually operate there:
+        national plans plus the regional ones scoped to that state. This is not cosmetic.
+        Rail 4 turns the catalog into thousands of plan-level entries, and a Texan has no
+        use for an Alaska-only Marketplace plan — offering it is noise at best, and at
+        worst invites a filter that can only ever return nothing.
+        """
+        want = (state or "").strip().upper()
         out: list[dict[str, Any]] = []
         for plan_id, srcs in self._sources_by_plan().items():
             best = max(srcs, key=lambda s: _CONFIDENCE_RANK.get(s.confidence, 0))
+            states = best.states
+            if want and states is not None and want not in states:
+                continue
             out.append({
                 "id": plan_id, "label": best.label, "category": best.category,
                 "payer": best.payer, "confidence": best.confidence, "kind": best.kind,
                 "level": best.level, "filterable": best.discriminates(),
+                "states": sorted(states) if states else None,
             })
         out.sort(key=lambda p: (CATEGORY_ORDER.get(p["category"], 99), p["label"].lower()))
         return out
 
-    def categories(self) -> list[dict[str, Any]]:
+    def categories(self, state: str = "") -> list[dict[str, Any]]:
         """Plans grouped by coverage category, in canonical display order."""
         groups: dict[str, list[dict[str, Any]]] = {}
-        for p in self.plans():
+        for p in self.plans(state):
             groups.setdefault(p["category"], []).append(p)
         ordered = sorted(groups.items(), key=lambda kv: CATEGORY_ORDER.get(kv[0], 99))
         return [{"id": cid, "label": category_label(cid), "plans": plans} for cid, plans in ordered]
