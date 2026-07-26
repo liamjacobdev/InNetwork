@@ -34,7 +34,7 @@ const PLANS = {
 test('the filter offers only verified plans; estimated payers never appear', async ({ page }) => {
   await page.route('**/api/**', (r) => r.fulfill({ json: {} }));
   await page.route('**/healthz', (r) => r.fulfill({ json: { ok: true } }));
-  await page.route('**/api/insurance/plans', (r) => r.fulfill({ json: PLANS }));
+  await page.route('**/api/insurance/plans*', (r) => r.fulfill({ json: PLANS }));
   await page.goto(PAGE);
 
   // Verified Medicare is offered; the estimated Aetna is not — with no way to reveal it.

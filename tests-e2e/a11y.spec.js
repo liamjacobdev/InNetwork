@@ -75,7 +75,7 @@ const search = (providers) => ({
 async function mock(page, { providers = [provider()] } = {}) {
   await page.route('**/api/**', (r) => r.fulfill({ json: {} }));
   await page.route('**/healthz', (r) => r.fulfill({ json: { ok: true } }));
-  await page.route('**/api/insurance/plans', (r) => r.fulfill({ json: PLANS }));
+  await page.route('**/api/insurance/plans*', (r) => r.fulfill({ json: PLANS }));
   await page.route('**/api/providers/search**', (r) => r.fulfill({ json: search(providers) }));
 }
 

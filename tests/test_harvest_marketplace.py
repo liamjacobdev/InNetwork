@@ -793,3 +793,47 @@ def test_structurally_broken_json_is_still_a_hole_not_a_lenient_parse(tmp_path):
         _plans, _names, stats = harvest_index("https://issuer.test/index.json", c,
                                               plan_year=2026)
     assert stats.complete is False and stats.failures
+
+
+def _available_ijson_backends():
+    """Every ijson backend importable here. Which one is active depends on whether the
+    compiled extension built on this machine, so the encoding-error detection has to hold
+    for all of them — not just the one that happens to be installed on a laptop."""
+    import importlib
+
+    out = []
+    for name in ("yajl2_c", "yajl2_cffi", "yajl2", "yajl", "python"):
+        try:
+            out.append((name, importlib.import_module(f"ijson.backends.{name}")))
+        except Exception:  # noqa: BLE001 - a backend that isn't built simply isn't tested
+            continue
+    return out
+
+
+def test_every_ijson_backend_reports_bad_utf8_in_a_way_we_recognize():
+    """The backends word this completely differently — yajl says "invalid bytes in UTF8
+    string", the pure-Python one raises a wrapped UnicodeDecodeError. Matching only one
+    would silently disable the sanitizer wherever the other is active, dropping whole
+    issuers for a single accented letter."""
+    from app.harvest_marketplace import _is_encoding_error
+
+    backends = _available_ijson_backends()
+    assert backends, "no ijson backend importable"
+    bad = _cp1252_records()
+    for name, mod in backends:
+        with pytest.raises(Exception) as ei:  # noqa: PT011 - backend-specific error types
+            list(mod.items(io.BytesIO(bad), "item"))
+        assert _is_encoding_error(ei.value), (
+            f"{name} backend's encoding error not recognized: {ei.value!r}")
+
+
+def test_structural_errors_are_not_mistaken_for_encoding_errors_on_any_backend():
+    """The other half of the boundary: broken JSON must never be re-read leniently."""
+    from app.harvest_marketplace import _is_encoding_error
+
+    truncated = b'[{"npi": "1003007915", "plans": ['
+    for name, mod in _available_ijson_backends():
+        with pytest.raises(Exception) as ei:  # noqa: PT011 - backend-specific error types
+            list(mod.items(io.BytesIO(truncated), "item"))
+        assert not _is_encoding_error(ei.value), (
+            f"{name} backend's structural error wrongly treated as encoding: {ei.value!r}")

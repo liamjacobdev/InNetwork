@@ -762,8 +762,13 @@ async function loadPlans(st) {
     state.categories = data.categories || [];
     state.planState = scope;
   } catch (_) {
-    state.plans = [];
-    state.categories = [];
+    // A failed fetch is not evidence that there are no plans, so it must never CLEAR the
+    // ones already loaded. This matters because of re-scoping: the list is refetched after
+    // every search, and clobbering it on a transient failure would make the whole insurance
+    // filter — including the user's active selections — vanish mid-session. On the very
+    // first load there is nothing to keep, so this still degrades to an empty filter.
+    state.plans = state.plans || [];
+    state.categories = state.categories || [];
   }
   renderInsuranceFilter();
 }

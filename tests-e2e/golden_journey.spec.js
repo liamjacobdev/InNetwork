@@ -66,7 +66,7 @@ const SEARCH = {
 test('golden journey: plan → ZIP → specialty → verified provider (<30s, <5 interactions)', async ({ page }) => {
   await page.route('**/api/**', (r) => r.fulfill({ json: {} }));
   await page.route('**/healthz', (r) => r.fulfill({ json: { ok: true } }));
-  await page.route('**/api/insurance/plans', (r) => r.fulfill({ json: PLANS }));
+  await page.route('**/api/insurance/plans*', (r) => r.fulfill({ json: PLANS }));
   await page.route('**/api/providers/search**', (r) => r.fulfill({ json: SEARCH }));
 
   const start = Date.now();

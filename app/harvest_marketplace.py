@@ -205,17 +205,33 @@ def stream_plan_npis(stream: IO[bytes], plan_year: int, stats: MarketplaceStats,
     return out
 
 
-def _is_encoding_error(exc: BaseException) -> bool:
-    """Whether a parse failure looks like invalid UTF-8 rather than malformed JSON.
+# How each ijson backend words "this byte isn't valid UTF-8". They differ completely, and
+# which backend is active depends on whether the compiled extension is available on the
+# machine — so matching only one silently disables the sanitizer wherever the other is in
+# use, and issuers get dropped for a single accented letter. Verified against both:
+#   yajl2_c : "lexical error: invalid bytes in UTF8 string."
+#   python  : "'utf-8' codec can't decode byte 0x82 in position 20: invalid start byte"
+_ENCODING_ERROR_MARKERS = (
+    "invalid bytes in utf8",      # yajl2 / yajl2_c / yajl2_cffi
+    "utf8 string",                # yajl variants
+    "codec can't decode",         # pure-Python backend (a wrapped UnicodeDecodeError)
+    "invalid start byte",
+    "invalid continuation byte",
+)
 
-    ijson's C backend reports this as a lexical error naming the bad bytes, so it is
-    matched on the message; a genuine structural error must NOT trigger the re-read,
-    because re-parsing broken JSON leniently would be a way to admit garbage.
+
+def _is_encoding_error(exc: BaseException) -> bool:
+    """Whether a parse failure is invalid UTF-8 rather than malformed JSON.
+
+    The distinction is a trust boundary, not a nicety: an encoding fault is re-read
+    leniently, while a STRUCTURAL fault must stay a hole. Re-parsing broken JSON leniently
+    would be a way to admit garbage into a verified set, so this matches only the
+    encoding-specific wording of each backend and never a generic parse error.
     """
     if isinstance(exc, UnicodeDecodeError):
         return True
     text = str(exc).lower()
-    return "invalid bytes in utf8" in text or "utf8 string" in text
+    return any(m in text for m in _ENCODING_ERROR_MARKERS)
 
 
 class Utf8Sanitizer(io.RawIOBase):
