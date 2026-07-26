@@ -265,8 +265,22 @@
     },
     "/api/insurance/plans": {
       "get": {
-        "description": "Filterable plans \u2014 flat list plus grouped by coverage category. Each plan\ncarries a `confidence` of 'verified' or 'estimated'.",
+        "description": "Filterable plans \u2014 flat list plus grouped by coverage category. Each plan\ncarries a `confidence` of 'verified' or 'estimated', and `states` (null = national).",
         "operationId": "insurance_plans_api_insurance_plans_get",
+        "parameters": [
+          {
+            "description": "2-letter state code; narrows the list to plans that operate there (national + that state's regional plans). Blank returns every plan.",
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "default": "",
+              "description": "2-letter state code; narrows the list to plans that operate there (national + that state's regional plans). Blank returns every plan.",
+              "title": "State",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -279,6 +293,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Insurance Plans"
@@ -696,7 +720,7 @@
     },
     "/healthz": {
       "get": {
-        "description": "Liveness + data-freshness. Flips to 503 (the dead-man's-switch an uptime monitor\nwatches) when a tracked source \u2014 harvested bitmap or legacy ingest \u2014 has gone stale.",
+        "description": "Liveness + data-freshness. Flips to 503 (the dead-man's-switch an uptime monitor\nwatches) when a tracked source \u2014 harvested bitmap or legacy ingest \u2014 has gone stale.\n\nReports plan COUNTS rather than the full plan list. With Rail 4 the catalog runs to\nthousands of plan-level entries, and a health endpoint that serialized all of them\nwould be megabytes \u2014 too heavy for the per-minute uptime check it exists to serve.\n`/api/insurance/plans` remains the place to enumerate them.",
         "operationId": "healthz_healthz_get",
         "responses": {
           "200": {

@@ -108,6 +108,61 @@ Document each payer's source URL and the date you retrieved it here as you wire 
 
 > Honest scope note: there is **no single free API** for all commercial insurers. The **estimated** tier gives you broad, recognizable named-payer filters on day one (clearly labeled, never presented as confirmed); the **verified** tier grows as you wire FHIR Plan-Net endpoints and ingest Transparency-in-Coverage files. Medicare is verified and national out of the box.
 
+### Source 4 — Marketplace machine-readable files (verified, **plan-level**, national in one pass)
+
+The broadest source, and the only one that arrives as a *registry of payers* rather than one
+payer. Under 45 CFR 156.221(i) every Qualified Health Plan issuer on a Federally-Facilitated
+Exchange must publish a public `index.json` → `providers.json` stating, per provider **per
+plan**, that the provider is in that plan's network. CMS publishes the master list of those
+URLs as the **Machine-Readable URL PUF**.
+
+That makes it the strongest badge in the app. Transparency-in-Coverage is payer-level ("listed
+somewhere in Aetna's file", so the UI must still say *confirm your specific plan*); this is
+plan-level — the claim is about HIOS plan `73836AK0930001` specifically, so entries are written
+with `level="plan"`, the same tier as the Medicare enrollment file.
+
+```bash
+python -m app.marketplace_registry --refresh   # parse the CMS PUF -> marketplace_sources.json
+python -m app.marketplace_registry --probe     # which issuer indexes are reachable today
+python -m app.harvest_marketplace              # harvest every issuer into plan bitmaps
+python -m app.harvest_marketplace --index-url https://issuer.example/cms-data-index.json
+python -m app.harvest_marketplace --state TX --max-files 2   # probe: writes nothing
+```
+
+Measured against the live PY2026 corpus (2026-07-24): **346 issuer rows → 108 distinct index
+URLs across 30 states · 4,294 provider files · ~59 GB**, parsing at ~38 MB/s. It fits one free
+GitHub Actions job — unlike TiC, these files are megabytes, not gigabytes. The
+[monthly workflow](.github/workflows/harvest-marketplace.yml) refreshes the registry and
+re-harvests; a new plan year is picked up automatically because the PUF URL resolver probes
+newer years first.
+
+**The trust gate, translated to a file rail.** There is no live endpoint to round-trip, so the
+two-way check becomes four machine-checked conditions, all enforced before anything is written:
+
+| Condition | Catches |
+|---|---|
+| **Luhn** (`membership.encode`) | a TIN or truncated id in the NPI slot fabricating a "yes" |
+| **Completeness** | a `provider_urls` entry that failed to read — a hole would read as a fabricated "no", so the issuer keeps its last-good bitmaps |
+| **Discrimination** | a "network" containing an implausible share of the national provider set — a directory dump that would mark everyone in-network |
+| **Positive control** | sampled members that don't exist in NPPES — ghost identifiers are not a network |
+
+Three shapes in the real data drive the parser, each verified against live files rather than
+assumed:
+
+- **`network_tier` is free text, and one value means the opposite of in-network.** Sampling 18
+  issuers found 25+ distinct tiers (`PREFERRED`, `PREFERREDTIER`, `STANDARDTIER`, `IN-NETWORK`,
+  named third-party networks like `CX--CONNECTION-DENTAL--PPO-USA`) — and `OUT-OF-NETWORK`. So
+  the rule is a **denylist**: being listed under a plan is the issuer's assertion of
+  participation, and only an explicit out-of-network tier is excluded. (`NON-PREFERRED` is a
+  rate tier *inside* the network and is kept.)
+- **Plan rows carry `years`.** Rows for a prior plan year are dropped, or last season's network
+  ships as current.
+- **A `providers.json` is not one issuer** — one issuer's file routinely carries another's plan
+  ids. Issuer and state come from the HIOS plan id itself, never from the URL we arrived by.
+
+Issuers sell many plans over one network (measured 4.3x–10x), so plans are separate catalog
+entries but share one content-addressed blob under `payers/mrf/<sig>.roaring`.
+
 ### Automated refresh + freshness SLOs (zero manual data steps)
 The [scheduled-ingest workflow](.github/workflows/ingest.yml) (free GitHub Actions cron) refreshes the deployed instance — TiC monthly, Medicare quarterly — by POSTing the **token-secured** `POST /admin/ingest?source=tic|medicare|all` endpoint (set repo secrets `INNETWORK_URL` + `INNETWORK_ADMIN_TOKEN`; the endpoint is disabled until `INNETWORK_ADMIN_TOKEN` is set, and runs the ingest in the background). `GET /healthz` reports per-source **data ages vs SLOs** and **flips to 503** when a source goes stale (Medicare > `INNETWORK_MEDICARE_MAX_AGE_DAYS`, default 100; payers > `INNETWORK_PAYER_MAX_AGE_DAYS`, default 35) — a dead-man's-switch an uptime monitor can watch, so a stalled ingest is surfaced rather than silently serving old data.
 

@@ -32,6 +32,7 @@ import mmap
 import os
 import tempfile
 import time
+from collections import OrderedDict
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -39,6 +40,7 @@ from typing import Any
 
 from pyroaring import BitMap, FrozenBitMap
 
+from .config import settings
 from .npi import luhn_valid
 
 log = logging.getLogger("innetwork.membership")
@@ -87,6 +89,11 @@ class ManifestEntry:
     sha256: str
     states: list[str] | None = None  # None -> national; a list -> regional
     max_age_days: int = DEFAULT_MAX_AGE_DAYS
+    # Blob length in bytes. Lets `load()` integrity-check a blob with a stat() instead of
+    # hashing it, which is what makes loading thousands of payers cheap; the full sha256 is
+    # still verified when the blob is actually decoded. 0 means "not recorded" (a manifest
+    # written before this field existed) and simply skips the cheap check.
+    size: int = 0
 
     def is_stale(self, now: float | None = None) -> bool:
         now = time.time() if now is None else now
@@ -148,21 +155,29 @@ def write_payer(
     bitmap: BitMap,
     fetched_at: float | None = None,
     max_age_days: int = DEFAULT_MAX_AGE_DAYS,
+    file_name: str | None = None,
 ) -> ManifestEntry:
     """Serialize one payer's bitmap to `root/<id>.roaring`, then upsert its manifest entry.
 
     The blob is written first and hashed; the manifest (the index a serve loads) is
     rewritten last, so a reader either sees the old consistent state or the new one.
+
+    `file_name` overrides the blob path so several manifest entries can SHARE one blob.
+    Rail 4 (Marketplace) needs this: an issuer routinely sells a dozen plans over one
+    network, so the plans are separate catalog entries (each a real, separately-selectable
+    plan) but content-addressed onto a single file — measured 4.3x fewer blobs on the first
+    issuer harvested. Writing the identical bytes a dozen times would burn the function
+    bundle budget for nothing.
     """
     root = Path(root)
     blob = bitmap.serialize()
-    fname = f"{id}.roaring"
+    fname = file_name or f"{id}.roaring"
     _atomic_write(root / fname, blob)
     entry = ManifestEntry(
         id=id, label=label, category=category, level=level, method=method,
         source_url=source_url, fetched_at=time.time() if fetched_at is None else fetched_at,
         count=len(bitmap), file=fname, sha256=_sha256(blob), states=states,
-        max_age_days=max_age_days,
+        max_age_days=max_age_days, size=len(blob),
     )
     _upsert_manifest(root, entry)
     return entry
@@ -200,19 +215,48 @@ class _Loaded:
 
 
 class MembershipStore:
-    """Read-only view over a `payers/` directory: the manifest + one mmap'd Roaring bitmap
-    per payer. Load once at startup; every membership test after that is a local, ~150ns
-    set lookup — no network, no per-NPI round-trip."""
+    """Read-only view over a `payers/` directory: the manifest, plus payer bitmaps decoded
+    **on demand**.
 
-    def __init__(self, root: str | os.PathLike[str]) -> None:
+    `load()` reads the manifest and stats each blob; it does not read or decode a single
+    bitmap. A payer's blob is mmap'd, hash-verified, and deserialized the first time it is
+    actually asked a membership question, and the least-recently-used decodings are evicted
+    past `settings.membership_max_resident`.
+
+    That laziness is what makes plan-level coverage affordable. Eagerly decoding every blob
+    was fine at 3 payers; at the thousands of Marketplace plans Rail 4 produces it would
+    hash and copy hundreds of megabytes on every serverless cold start, to answer a search
+    that touches maybe five of them. A search in Texas now never touches an Alaska plan.
+
+    The integrity guarantee is unchanged, only re-timed: `load()` catches a missing or
+    wrong-sized blob with a stat, and the full sha256 is still verified before any blob is
+    allowed to answer. A payer that fails either check is dropped and reads as "unknown" —
+    never as "everyone is out of network".
+    """
+
+    def __init__(self, root: str | os.PathLike[str],
+                 max_resident: int | None = None) -> None:
         self.root = Path(root)
-        self._loaded: dict[str, _Loaded] = {}
+        self._entries: dict[str, ManifestEntry] = {}
+        # Decoded blobs, keyed by FILE (not payer id) so the many plans an issuer sells
+        # over one network share a single decoding. Insertion order is the LRU order.
+        self._blobs: OrderedDict[str, _Loaded] = OrderedDict()
+        self._max_resident = max_resident
         self.offset = OFFSET
 
+    @property
+    def max_resident(self) -> int:
+        if self._max_resident is not None:
+            return self._max_resident
+        return max(1, int(getattr(settings, "membership_max_resident", 64)))
+
     def load(self) -> int:
-        """Load (or reload) every payer named in the manifest. A payer whose blob is
-        missing, size-mismatched, or corrupt is skipped with a warning — it becomes
-        "unknown", never a false "not in network". Returns the number of payers loaded."""
+        """Index every payer named in the manifest, without decoding any of them.
+
+        A payer whose blob is missing or whose size disagrees with the manifest is skipped
+        with a warning (it becomes "unknown", never a false "not in network"). Returns the
+        number of payers indexed.
+        """
         self.close()
         data = _read_manifest_dict(self.root)
         self.offset = int(data.get("offset", OFFSET))
@@ -223,18 +267,21 @@ class MembershipStore:
                 log.warning("Skipping malformed manifest entry %r: %s: %s", pid, type(e).__name__, e)
                 continue
             blob_path = self.root / entry.file
-            if not blob_path.exists():
+            try:
+                actual = blob_path.stat().st_size
+            except OSError:
                 log.warning("Payer %r blob missing (%s) — skipped (serves as unknown)", pid, blob_path)
                 continue
-            try:
-                loaded = self._load_blob(entry, blob_path)
-            except Exception as e:
-                log.warning("Payer %r blob unreadable (%s) — skipped: %s: %s",
-                            pid, blob_path, type(e).__name__, e)
+            # Cheap integrity check: a truncated or swapped blob is caught here without
+            # reading it. Exact content is still verified by sha256 at decode time.
+            if entry.size and actual != entry.size:
+                log.warning("Payer %r blob size %d != manifest %d (%s) — skipped",
+                            pid, actual, entry.size, blob_path)
                 continue
-            self._loaded[pid] = loaded
-        log.info("MembershipStore loaded %d payer(s) from %s", len(self._loaded), self.root)
-        return len(self._loaded)
+            self._entries[pid] = entry
+        log.info("MembershipStore indexed %d payer(s) from %s (bitmaps decode on demand)",
+                 len(self._entries), self.root)
+        return len(self._entries)
 
     def _load_blob(self, entry: ManifestEntry, blob_path: Path) -> _Loaded:
         fh = open(blob_path, "rb")
@@ -255,54 +302,92 @@ class MembershipStore:
         # but keeping it referenced is cheap and future-proofs a true zero-copy path.
         return _Loaded(entry=entry, bitmap=bitmap, _mm=mm)
 
-    def close(self) -> None:
-        for ld in self._loaded.values():
-            mm = ld._mm
-            if mm is not None:
+    def _bitmap(self, payer_id: str) -> FrozenBitMap | None:
+        """The payer's decoded bitmap, decoding (and caching) it on first use.
+
+        Returns None when the payer is unknown or its blob fails verification — the source
+        layer turns that into "unknown", never a "no".
+        """
+        entry = self._entries.get(payer_id)
+        if entry is None:
+            return None
+        cached = self._blobs.get(entry.file)
+        if cached is not None:
+            self._blobs.move_to_end(entry.file)     # mark most-recently-used
+            return cached.bitmap
+        try:
+            loaded = self._load_blob(entry, self.root / entry.file)
+        except Exception as e:
+            log.warning("Payer %r blob unreadable (%s) — dropped: %s: %s",
+                        payer_id, entry.file, type(e).__name__, e)
+            # Drop every entry served by this blob so a bad file is refused once, not
+            # re-read on every request.
+            for pid in [p for p, e2 in self._entries.items() if e2.file == entry.file]:
+                del self._entries[pid]
+            return None
+        self._blobs[entry.file] = loaded
+        while len(self._blobs) > self.max_resident:
+            _fname, evicted = self._blobs.popitem(last=False)
+            if evicted._mm is not None:
                 try:
-                    mm.close()
+                    evicted._mm.close()
                 except Exception:
                     pass
-        self._loaded = {}
+        return loaded.bitmap
+
+    def close(self) -> None:
+        for loaded in self._blobs.values():
+            if loaded._mm is not None:
+                try:
+                    loaded._mm.close()
+                except Exception:
+                    pass
+        self._blobs.clear()
+        self._entries = {}
 
     # -- introspection --
     def payers(self) -> list[ManifestEntry]:
-        return [ld.entry for ld in self._loaded.values()]
+        return list(self._entries.values())
 
     def entry(self, payer_id: str) -> ManifestEntry | None:
-        ld = self._loaded.get(payer_id)
-        return ld.entry if ld else None
+        return self._entries.get(payer_id)
 
     def loaded(self, payer_id: str) -> bool:
-        return payer_id in self._loaded
+        """Whether this payer can answer. Deliberately does NOT force a decode: it is
+        called for every source on every request, and forcing a decode here would undo the
+        laziness entirely."""
+        return payer_id in self._entries
+
+    def resident(self) -> int:
+        """How many blobs are currently decoded — for tests and ops visibility."""
+        return len(self._blobs)
 
     def count(self, payer_id: str) -> int:
-        ld = self._loaded.get(payer_id)
-        return len(ld.bitmap) if ld else 0
+        """The payer's NPI count, read from the manifest so it costs no decode."""
+        entry = self._entries.get(payer_id)
+        return entry.count if entry else 0
 
     # -- membership --
     def has(self, payer_id: str, npi: str) -> bool:
         """True iff `npi` is in `payer_id`'s in-network set. A payer that isn't loaded, or
         a non-NPI query value, returns False (the source layer maps not-loaded to
         "unknown"; a malformed NPI genuinely isn't in any validated set)."""
-        ld = self._loaded.get(payer_id)
-        if ld is None:
-            return False
         v = encode(npi)
-        return v is not None and v in ld.bitmap
+        if v is None:
+            return False              # a malformed NPI needs no blob to be answered
+        bm = self._bitmap(payer_id)
+        return bm is not None and v in bm
 
     def has_many(self, payer_id: str, npis: Iterable[str]) -> set[str]:
         """The subset of `npis` present in `payer_id`'s set (empty if not loaded)."""
-        ld = self._loaded.get(payer_id)
-        if ld is None:
+        keys = [(n, encode(n)) for n in npis]
+        wanted = [(n, v) for n, v in keys if v is not None]
+        if not wanted:
+            return set()              # nothing askable — don't decode a blob to say so
+        bm = self._bitmap(payer_id)
+        if bm is None:
             return set()
-        bm = ld.bitmap
-        out: set[str] = set()
-        for n in npis:
-            v = encode(n)
-            if v is not None and v in bm:
-                out.add(str(n))
-        return out
+        return {str(n) for n, v in wanted if v in bm}
 
 
 def _entry_from_dict(raw: dict[str, Any]) -> ManifestEntry:

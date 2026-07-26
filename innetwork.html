@@ -260,6 +260,15 @@
   .ins-legend { display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; margin:0 0 10px; font-size:.68rem; color:var(--muted); }
   .ins-groups { display:flex; flex-direction:column; gap:11px; max-height:240px; overflow-y:auto; padding-right:2px; }
   .ins-group-title { font-size:.64rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); margin:0 0 5px; }
+  /* Plan picker: with plan-level coverage a category holds hundreds of near-identically
+     named plans, so the list is searchable and the count is always visible. */
+  .ins-search { display:flex; align-items:center; gap:9px; margin:0 0 9px; flex-wrap:wrap; }
+  .ins-search-input { flex:1 1 190px; min-width:0; padding:7px 11px; border:1.5px solid var(--border-2); border-radius:9px; background:var(--input-bg); color:var(--text); font-size:var(--text-xs); font-family:inherit; }
+  .ins-search-input:focus { outline:none; border-color:var(--jade); }
+  .ins-search-n { font-size:.66rem; color:var(--muted); white-space:nowrap; }
+  .ins-group-n { font-weight:600; color:var(--muted); letter-spacing:0; }
+  .ins-empty { font-size:.7rem; color:var(--muted); margin:9px 0 0; }
+  .ins-empty .linklike { background:none; border:0; padding:0; font:inherit; color:var(--jade-dd); text-decoration:underline; cursor:pointer; }
   .ins-chips { display:flex; flex-wrap:wrap; gap:7px; }
   .conf-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; display:inline-block; }
   .conf-dot.verified { background:var(--jade); }

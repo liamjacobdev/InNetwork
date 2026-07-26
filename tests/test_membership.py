@@ -228,3 +228,157 @@ def test_malformed_manifest_entry_is_skipped(tmp_path):
     s.load()
     assert s.loaded("good") and not s.loaded("bad")
     s.close()
+
+
+# ── lazy decoding: what makes plan-level scale affordable ─────────────────────
+def test_load_indexes_without_decoding_any_bitmap(tmp_path):
+    """Indexing must be O(manifest), not O(bytes on disk). Eagerly decoding was fine at 3
+    payers; at thousands of Marketplace plans it would hash and copy hundreds of MB on
+    every serverless cold start to answer a search touching a handful of them."""
+    for i in range(5):
+        _write(tmp_path, PRESENT, id=f"payer{i}", label=f"Payer {i}")
+    s = membership.MembershipStore(tmp_path)
+    assert s.load() == 5
+    assert s.resident() == 0
+    # Metadata is served straight from the manifest — still no decode.
+    assert s.count("payer0") == len(PRESENT)
+    assert s.loaded("payer0") is True
+    assert len(s.payers()) == 5
+    assert s.resident() == 0
+    s.close()
+
+
+def test_a_bitmap_is_decoded_only_when_actually_asked(tmp_path):
+    for i in range(3):
+        _write(tmp_path, PRESENT, id=f"payer{i}", label=f"Payer {i}")
+    s = membership.MembershipStore(tmp_path)
+    s.load()
+    assert s.has("payer1", PRESENT[0]) is True
+    assert s.resident() == 1              # only the payer we asked about
+    s.close()
+
+
+def test_a_malformed_npi_is_answered_without_decoding(tmp_path):
+    """A junk query must not be able to force disk work — otherwise a hostile caller could
+    make every request decode every payer."""
+    _write(tmp_path, PRESENT)
+    s = membership.MembershipStore(tmp_path)
+    s.load()
+    assert s.has("cigna", BOGUS) is False
+    assert s.has_many("cigna", [BOGUS, "nope"]) == set()
+    assert s.resident() == 0
+    s.close()
+
+
+def test_least_recently_used_bitmaps_are_evicted(tmp_path):
+    for i in range(4):
+        _write(tmp_path, PRESENT, id=f"payer{i}", label=f"Payer {i}")
+    s = membership.MembershipStore(tmp_path, max_resident=2)
+    s.load()
+    s.has("payer0", PRESENT[0])
+    s.has("payer1", PRESENT[0])
+    assert s.resident() == 2
+    s.has("payer2", PRESENT[0])
+    assert s.resident() == 2               # capped, not growing
+    # Evicted payers still answer correctly — eviction is a cache concern, never a
+    # correctness one.
+    assert s.has("payer0", PRESENT[0]) is True
+    assert s.has("payer0", ABSENT) is False
+    s.close()
+
+
+def test_a_corrupt_blob_is_still_refused_when_it_is_finally_decoded(tmp_path):
+    """Verification moved from startup to first use — it did not weaken. A blob whose
+    bytes don't match the manifest hash must never answer, and must be refused once rather
+    than re-read on every request."""
+    entry = _write(tmp_path, PRESENT)
+    # Same length, different bytes: passes the cheap size check at load, fails sha256.
+    (tmp_path / entry.file).write_bytes(b"\x00" * entry.size)
+    s = membership.MembershipStore(tmp_path)
+    assert s.load() == 1                   # indexed: size still matches
+    assert s.has("cigna", PRESENT[0]) is False
+    assert s.loaded("cigna") is False      # dropped after the hash mismatch
+    assert s.resident() == 0
+    s.close()
+
+
+def test_a_wrong_sized_blob_is_caught_at_index_time(tmp_path):
+    entry = _write(tmp_path, PRESENT)
+    (tmp_path / entry.file).write_bytes(b"truncated")
+    s = membership.MembershipStore(tmp_path)
+    assert s.load() == 0
+    assert s.has("cigna", PRESENT[0]) is False
+    s.close()
+
+
+def test_healthz_stays_small_when_a_whole_rail_goes_stale(tmp_path, temp_db):
+    """The failure this endpoint must survive is a RAIL stalling, not one payer. With
+    thousands of plan-level entries the payload must stay bounded, and the dead-man's
+    switch must still trip on a stalled pipeline."""
+    from app import routes_ops
+    from app.insurance import registry as global_registry
+
+    stale_at = time.time() - 400 * 86400
+    for i in range(120):
+        _write(tmp_path, PRESENT, id=f"plan{i:03d}", label=f"Plan {i}", method="marketplace-mrf",
+               fetched_at=stale_at, max_age_days=35)
+    old_dir, old_use = settings.membership_dir, settings.use_membership
+    settings.membership_dir, settings.use_membership = str(tmp_path), True
+    try:
+        global_registry.build()
+        fresh = routes_ops._data_freshness()
+        assert fresh["tracked"] == 120
+        assert fresh["stale_count"] == 120
+        assert len(fresh["sources"]) <= routes_ops._MAX_SOURCE_ROWS
+        assert len(fresh["stale"]) <= routes_ops._MAX_SOURCE_ROWS
+        assert fresh["sources_truncated"] is True
+        assert fresh["slos_met"] is False        # a whole rail stale IS a stalled pipeline
+    finally:
+        if global_registry.membership_store:
+            global_registry.membership_store.close()
+        settings.membership_dir, settings.use_membership = old_dir, old_use
+        global_registry.build()
+
+
+def test_one_flaky_payer_does_not_take_the_service_down(tmp_path, temp_db):
+    """The counterpart: with 40 healthy plans, a single stale one is reported but must not
+    503 the whole service — that would make coverage growth a reliability liability."""
+    from app import routes_ops
+    from app.insurance import registry as global_registry
+
+    for i in range(40):
+        _write(tmp_path, PRESENT, id=f"plan{i:03d}", label=f"Plan {i}", method="marketplace-mrf",
+               max_age_days=35)
+    _write(tmp_path, PRESENT, id="flaky", label="Flaky", method="marketplace-mrf",
+           fetched_at=time.time() - 400 * 86400, max_age_days=35)
+    old_dir, old_use = settings.membership_dir, settings.use_membership
+    settings.membership_dir, settings.use_membership = str(tmp_path), True
+    try:
+        global_registry.build()
+        fresh = routes_ops._data_freshness()
+        assert "flaky" in fresh["stale"]         # reported...
+        assert fresh["slos_met"] is True         # ...but not a service-down event
+    finally:
+        if global_registry.membership_store:
+            global_registry.membership_store.close()
+        settings.membership_dir, settings.use_membership = old_dir, old_use
+        global_registry.build()
+
+
+def test_a_manifest_written_before_the_size_field_still_loads(tmp_path):
+    """Every entry in the currently-deployed manifest predates `size`, so a missing field
+    must mean "skip the cheap check", never "refuse the payer" — otherwise shipping this
+    change would blank out live coverage until the next harvest rewrote the manifest."""
+    import json
+
+    entry = _write(tmp_path, PRESENT)
+    p = tmp_path / "manifest.json"
+    data = json.loads(p.read_text(encoding="utf-8"))
+    del data["payers"][entry.id]["size"]           # exactly what production looks like today
+    p.write_text(json.dumps(data), encoding="utf-8")
+
+    s = membership.MembershipStore(tmp_path)
+    assert s.load() == 1
+    assert s.entry("cigna").size == 0
+    assert s.has("cigna", PRESENT[0]) is True      # and the sha256 check still runs
+    s.close()

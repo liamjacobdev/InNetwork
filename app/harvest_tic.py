@@ -92,6 +92,13 @@ def _open_binary(src: str) -> tuple[IO[bytes], list[Any]]:
     return raw, closers
 
 
+# Public alias. Rail 4 (app/harvest_marketplace.py) opens issuer `providers.json` files
+# under exactly this contract — remote-or-local, transparently gunzipped, seekable — so it
+# shares this one implementation. That matters for the planned no-spool streaming change:
+# there is one place to fix, not two.
+open_json_stream = _open_binary
+
+
 def _top_level_keys(stream: IO[bytes], limit: int = 8) -> list[str]:
     """The first few top-level object keys, to classify a file (ToC vs in-network) without
     reading it whole. Rewinds the stream afterward (callers pass a seekable stream)."""

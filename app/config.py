@@ -136,6 +136,14 @@ class Settings:
             "INNETWORK_USE_MEMBERSHIP", "true"
         ).strip().lower() in ("1", "true", "yes", "on")
         self.membership_dir = os.environ.get("INNETWORK_MEMBERSHIP_DIR", "payers")
+        # How many decoded payer bitmaps stay resident. Bitmaps are decoded lazily, on
+        # first membership test, and the least-recently-used are evicted past this cap —
+        # which is what lets the store hold THOUSANDS of plan-level payers (Rail 4) on a
+        # serverless function: a single search touches only the handful of payers that
+        # serve the searched state, so the rest are never decoded at all. Raise it to
+        # trade memory for fewer re-decodes on a long-lived server.
+        self.membership_max_resident = int(
+            os.environ.get("INNETWORK_MEMBERSHIP_MAX_RESIDENT", "64"))
 
         # When the same process serves BOTH the page and the API (e.g. the Vercel
         # serverless deploy), serve innetwork.config.js with apiBase rewritten to the
