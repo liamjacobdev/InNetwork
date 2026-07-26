@@ -331,8 +331,9 @@ class MembershipStore:
             if evicted._mm is not None:
                 try:
                     evicted._mm.close()
-                except Exception:
-                    pass
+                except Exception as e:
+                    log.debug("Failed to close mmap for evicted blob %r: %s: %s",
+                              _fname, type(e).__name__, e)
         return loaded.bitmap
 
     def close(self) -> None:
@@ -340,8 +341,9 @@ class MembershipStore:
             if loaded._mm is not None:
                 try:
                     loaded._mm.close()
-                except Exception:
-                    pass
+                except Exception as e:
+                    log.debug("Failed to close mmap during MembershipStore.close(): %s: %s",
+                              type(e).__name__, e)
         self._blobs.clear()
         self._entries = {}
 
