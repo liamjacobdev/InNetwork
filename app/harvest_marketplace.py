@@ -70,7 +70,7 @@ from typing import IO, Any, cast
 
 import httpx
 import ijson
-from pyroaring import BitMap
+from pyroaring import BitMap, FrozenBitMap
 
 from . import marketplace_registry, membership
 from .config import settings
@@ -123,6 +123,7 @@ class MarketplaceStats:
     plans: int = 0                     # distinct plan ids collected
     networks: int = 0                  # distinct NPI sets after dedupe
     gate_rejected: list[str] = field(default_factory=list)   # "<network>: <why>" — TRUST
+    plan_collisions: list[str] = field(default_factory=list)  # same plan in 2 indexes
     label_warnings: list[str] = field(default_factory=list)  # cosmetic: names unavailable
     failures: list[str] = field(default_factory=list)        # "<src>: <why>" per hole
     error: str | None = None
@@ -483,17 +484,62 @@ def _signature(bitmap: BitMap) -> str:
     return hashlib.sha256(bitmap.serialize()).hexdigest()[:16]
 
 
+def _load_blob(root: Path, file_name: str) -> BitMap | None:
+    """Read a previously written blob back as a mutable BitMap, or None if unreadable."""
+    try:
+        return BitMap(FrozenBitMap.deserialize((Path(root) / file_name).read_bytes()))
+    except Exception:  # noqa: BLE001 - an unreadable prior blob just means "nothing to union"
+        return None
+
+
 def write_plans(root: Path, plans: dict[str, BitMap], names: dict[str, str], *,
                 index_url: str, plan_year: int, stats: MarketplaceStats,
-                client: httpx.Client | None) -> list[membership.ManifestEntry]:
+                client: httpx.Client | None,
+                run_seen: dict[str, str] | None = None) -> list[membership.ManifestEntry]:
     """Gate, dedupe, and write one issuer's plans.
 
     Each distinct NPI set is gated ONCE and written ONCE (content-addressed under
     `mrf/<sig>.roaring`); every plan sharing that set gets its own manifest entry pointing
     at the shared blob. A network that fails the gate takes all of its plans with it and is
     recorded in `stats.gate_rejected` — nothing partial, nothing silent.
+
+    `run_seen` maps plan_id -> the blob already written for it EARLIER IN THIS RUN, and
+    exists to stop a plan's network from silently shrinking. A multi-state issuer commonly
+    files one index per state while each index republishes the issuer's whole plan set
+    (Antidote Health files an AZ and an OH index; both carry all 74 plans). Writing them in
+    sequence made the last file win, so plan 12345AZ… ended up with whatever network the
+    OH file happened to list — measured on the first real run as a strict SUBSET, 52,798
+    NPIs instead of 56,522. The 3,724 providers in the difference then answered "not in
+    network" for those plans: a fabricated "no", which this codebase does not permit.
+
+    So a collision UNIONS instead. Being listed for a plan in *any* of the issuer's own
+    published files is the issuer asserting participation; dropping the providers only one
+    file mentions would invent a denial we have no evidence for. Union is also the only
+    resolution that can't depend on file ordering.
+
+    Note the deliberate limit: this unions within a RUN, not across months. A fresh monthly
+    harvest still starts from that month's files, so a provider who genuinely leaves a
+    network does disappear on the next run — as they should.
     """
     denominator = _national_npi_denominator(root)
+
+    # Fold in anything an earlier index in this run already wrote for the same plan.
+    if run_seen:
+        for plan_id, bm in list(plans.items()):
+            prior_file = run_seen.get(plan_id)
+            if not prior_file:
+                continue
+            prior = _load_blob(root, prior_file)
+            if prior is None:
+                continue
+            merged = bm | prior
+            if len(merged) != len(bm) or len(merged) != len(prior):
+                stats.plan_collisions.append(
+                    f"{plan_id}: also published by an earlier index this run "
+                    f"({len(prior):,} NPIs) — unioned with this one ({len(bm):,}) "
+                    f"-> {len(merged):,}")
+            plans[plan_id] = merged
+
     by_sig: dict[str, list[str]] = {}
     sig_map: dict[str, BitMap] = {}
     for plan_id, bm in plans.items():
@@ -532,12 +578,15 @@ def write_plans(root: Path, plans: dict[str, BitMap], names: dict[str, str], *,
                 file_name=fname,
             )
             written.append(entry)
+            if run_seen is not None:
+                run_seen[plan_id] = fname
     return written
 
 
 def harvest_issuer(index_url: str, root: Path, client: httpx.Client, *, plan_year: int,
                    max_files: int | None = None, dry_run: bool = False,
                    gate_client: httpx.Client | None = None,
+                   run_seen: dict[str, str] | None = None,
                    ) -> tuple[list[membership.ManifestEntry], MarketplaceStats]:
     """Harvest one issuer index end to end, writing only a COMPLETE, gated result."""
     plans, names, stats = harvest_index(index_url, client, plan_year=plan_year,
@@ -552,7 +601,7 @@ def harvest_issuer(index_url: str, root: Path, client: httpx.Client, *, plan_yea
         stats.networks = len({_signature(b) for b in plans.values()})
         return [], stats
     written = write_plans(root, plans, names, index_url=index_url, plan_year=plan_year,
-                          stats=stats, client=gate_client)
+                          stats=stats, client=gate_client, run_seen=run_seen)
     return written, stats
 
 
@@ -568,6 +617,8 @@ def _report(index_url: str, entries: list[membership.ManifestEntry],
           f"non-hios={stats.skipped_non_hios:,}", flush=True)
     for r in stats.gate_rejected:
         print(f"    GATE REJECTED {r}", flush=True)
+    for c in stats.plan_collisions:
+        print(f"    UNIONED {c}", flush=True)
     for w in stats.label_warnings:
         print(f"    label warning (cosmetic) {w}", flush=True)
     for f in stats.failures:
@@ -579,6 +630,48 @@ def _report(index_url: str, entries: list[membership.ManifestEntry],
               f"{len({e.file for e in entries})} blob(s).", flush=True)
     elif not stats.complete:
         print("    INCOMPLETE — nothing written (last-good kept).", flush=True)
+
+
+def prune_orphan_blobs(root: Path) -> list[str]:
+    """Delete `mrf/*.roaring` blobs no manifest entry references any more.
+
+    Content-addressing means a network whose membership changes is written under a NEW
+    filename, leaving the old one behind; a cross-index union does the same. Nothing reads
+    them, but they are committed to the repo and shipped inside the Vercel function bundle
+    — the same 250 MB budget the payer bitmaps compete for — so they are swept after each
+    run. Only the mrf/ subtree is touched: the per-payer blobs of the other rails are not
+    content-addressed and must never be swept by filename.
+    """
+    root = Path(root)
+    mrf = root / "mrf"
+    if not mrf.is_dir():
+        return []
+    referenced = {e.file for e in _manifest_entries(root)}
+    removed: list[str] = []
+    for blob in sorted(mrf.glob("*.roaring")):
+        rel = f"mrf/{blob.name}"
+        if rel in referenced:
+            continue
+        try:
+            blob.unlink()
+            removed.append(rel)
+        except OSError:
+            continue
+    return removed
+
+
+def _manifest_entries(root: Path) -> list[membership.ManifestEntry]:
+    try:
+        data = json.loads((Path(root) / membership.MANIFEST_NAME).read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001 - no manifest means nothing is referenced
+        return []
+    out = []
+    for raw in (data.get("payers") or {}).values():
+        try:
+            out.append(membership._entry_from_dict(raw))
+        except Exception:  # noqa: BLE001
+            continue
+    return out
 
 
 def _plan_year_from_sources(root: Path) -> int:
@@ -628,25 +721,31 @@ def main(argv: list[str]) -> None:
             targets = targets[:args.max_issuers]
 
     headers = {"User-Agent": settings.contact_ua, "Accept": "application/json"}
-    n_issuers = n_written = n_incomplete = n_gated = 0
+    n_issuers = n_written = n_incomplete = n_gated = n_unioned = 0
     blobs: set[str] = set()
+    # plan_id -> blob written for it earlier in THIS run, so a second index that
+    # republishes the same plan unions with it instead of overwriting it.
+    run_seen: dict[str, str] = {}
     with httpx.Client(follow_redirects=True, headers=headers) as client, \
             httpx.Client(follow_redirects=True, headers=headers) as gate_client:
         for url in targets:
             entries, stats = harvest_issuer(
                 url, root, client, plan_year=plan_year, max_files=args.max_files,
-                dry_run=args.dry_run, gate_client=None if args.dry_run else gate_client)
+                dry_run=args.dry_run, gate_client=None if args.dry_run else gate_client,
+                run_seen=run_seen)
             _report(url, entries, stats)
             n_issuers += 1
             n_written += len(entries)
             blobs |= {e.file for e in entries}
             n_incomplete += 0 if stats.complete else 1
             n_gated += len(stats.gate_rejected)
+            n_unioned += len(stats.plan_collisions)
 
     print(f"\nRail 4 summary: {n_issuers} issuer index(es), "
           f"{n_written} plan entries over {len(blobs)} blob(s); "
           f"{n_incomplete} incomplete (nothing written), "
-          f"{n_gated} gate rejection(s).", flush=True)
+          f"{n_gated} gate rejection(s), {n_unioned} cross-index plan union(s).",
+          flush=True)
 
 
 if __name__ == "__main__":
