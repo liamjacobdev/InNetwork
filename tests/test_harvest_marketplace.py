@@ -971,3 +971,60 @@ def test_pruning_a_store_with_no_mrf_dir_is_a_no_op(tmp_path):
     from app.harvest_marketplace import prune_orphan_blobs
 
     assert prune_orphan_blobs(tmp_path) == []
+
+
+@respx.mock
+def test_the_cli_actually_prunes_and_reports_it(tmp_path, monkeypatch, capsys):
+    """Exercises pruning THROUGH main(). The previous test called prune_orphan_blobs()
+    directly, so when the call site was missing from main() the function sat there as dead
+    code — ruff and mypy are perfectly happy with an uncalled function, and the harvest
+    shipped without ever pruning. A unit test of a helper cannot tell you the helper is
+    wired in; only driving the entry point can.
+    """
+    from app import harvest_marketplace as hm
+
+    respx.get("https://issuer.test/index.json").mock(
+        return_value=httpx.Response(200, json=_INDEX))
+    respx.get("https://issuer.test/providers.json").mock(
+        return_value=httpx.Response(200, json=_RECORDS))
+    respx.get("https://issuer.test/plans.json").mock(return_value=httpx.Response(200, json=[]))
+    respx.get(url__startswith="https://npiregistry.cms.hhs.gov").mock(
+        return_value=httpx.Response(200, json={"results": [{"number": NPI_A}]}))
+
+    root = tmp_path / "payers"
+    (root / "mrf").mkdir(parents=True)
+    stale = root / "mrf" / "stale.roaring"
+    bm, _a, _r = membership.build_bitmap([NPI_A])
+    stale.write_bytes(bm.serialize())
+
+    monkeypatch.chdir(tmp_path)
+    hm.main(["prog", "--index-url", "https://issuer.test/index.json", "--root", str(root)])
+
+    out = capsys.readouterr().out
+    assert not stale.exists(), "main() did not prune the orphaned blob"
+    assert "pruned 1 orphaned blob(s)" in out
+
+
+@respx.mock
+def test_a_dry_run_never_prunes(tmp_path, monkeypatch, capsys):
+    """--dry-run must not touch the store at all, including the sweep."""
+    from app import harvest_marketplace as hm
+
+    respx.get("https://issuer.test/index.json").mock(
+        return_value=httpx.Response(200, json=_INDEX))
+    respx.get("https://issuer.test/providers.json").mock(
+        return_value=httpx.Response(200, json=_RECORDS))
+    respx.get("https://issuer.test/plans.json").mock(return_value=httpx.Response(200, json=[]))
+
+    root = tmp_path / "payers"
+    (root / "mrf").mkdir(parents=True)
+    stale = root / "mrf" / "stale.roaring"
+    bm, _a, _r = membership.build_bitmap([NPI_A])
+    stale.write_bytes(bm.serialize())
+
+    monkeypatch.chdir(tmp_path)
+    hm.main(["prog", "--index-url", "https://issuer.test/index.json", "--root", str(root),
+             "--dry-run"])
+
+    assert stale.exists()
+    assert "pruned 0 orphaned blob(s)" in capsys.readouterr().out
