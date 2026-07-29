@@ -741,10 +741,15 @@ def main(argv: list[str]) -> None:
             n_gated += len(stats.gate_rejected)
             n_unioned += len(stats.plan_collisions)
 
+    swept: list[str] = []
+    if not args.dry_run:
+        swept = prune_orphan_blobs(root)
+
     print(f"\nRail 4 summary: {n_issuers} issuer index(es), "
           f"{n_written} plan entries over {len(blobs)} blob(s); "
           f"{n_incomplete} incomplete (nothing written), "
-          f"{n_gated} gate rejection(s), {n_unioned} cross-index plan union(s).",
+          f"{n_gated} gate rejection(s), {n_unioned} cross-index plan union(s); "
+          f"pruned {len(swept)} orphaned blob(s).",
           flush=True)
 
 
