@@ -847,3 +847,127 @@ def test_structural_errors_are_not_mistaken_for_encoding_errors_on_any_backend()
             list(mod.items(io.BytesIO(truncated), "item"))
         assert not _is_encoding_error(ei.value), (
             f"{name} backend's structural error wrongly treated as encoding: {ei.value!r}")
+
+
+# ── Cross-index plan collisions must never shrink a network ──────────────────
+_COLLIDE_INDEX_A = {"provider_urls": ["https://issuer.test/a-providers.json"],
+                    "plan_urls": [], "formulary_urls": []}
+_COLLIDE_INDEX_B = {"provider_urls": ["https://issuer.test/b-providers.json"],
+                    "plan_urls": [], "formulary_urls": []}
+
+
+@respx.mock
+def test_a_second_index_republishing_a_plan_unions_instead_of_overwriting(tmp_path):
+    """Reproduces a real production failure. A multi-state issuer files one index per
+    state while each index republishes the issuer's WHOLE plan set (Antidote Health filed
+    an AZ and an OH index, both carrying all 74 plans). Writing them in sequence let the
+    last file win, so an Arizona plan ended up with the Ohio file's network — measured live
+    as a strict subset, 52,798 NPIs instead of 56,522. The 3,724 providers in the
+    difference then answered "not in network": a fabricated no.
+    """
+    respx.get("https://issuer.test/a.json").mock(
+        return_value=httpx.Response(200, json=_COLLIDE_INDEX_A))
+    respx.get("https://issuer.test/b.json").mock(
+        return_value=httpx.Response(200, json=_COLLIDE_INDEX_B))
+    # The SAME plan id in both indexes, with different provider sets.
+    respx.get("https://issuer.test/a-providers.json").mock(
+        return_value=httpx.Response(200, json=[
+            _rec(NPI_A, [_plan("73836AK0930001")]),
+            _rec(NPI_C, [_plan("73836AK0930001")]),      # only the first index lists this one
+        ]))
+    respx.get("https://issuer.test/b-providers.json").mock(
+        return_value=httpx.Response(200, json=[
+            _rec(NPI_A, [_plan("73836AK0930001")]),
+            _rec(NPI_B, [_plan("73836AK0930001")]),      # only the second index lists this one
+        ]))
+
+    run_seen: dict[str, str] = {}
+    with httpx.Client() as c:
+        for url in ("https://issuer.test/a.json", "https://issuer.test/b.json"):
+            harvest_issuer(url, tmp_path, c, plan_year=2026, run_seen=run_seen)
+
+    store = membership.MembershipStore(tmp_path)
+    store.load()
+    try:
+        # Every provider either index published for the plan is in-network. Before the fix
+        # NPI_C was dropped the moment the second index was harvested.
+        assert store.has("73836ak0930001", NPI_A) is True
+        assert store.has("73836ak0930001", NPI_B) is True
+        assert store.has("73836ak0930001", NPI_C) is True
+        assert store.count("73836ak0930001") == 3
+    finally:
+        store.close()
+
+
+@respx.mock
+def test_a_collision_is_reported_not_silent(tmp_path):
+    respx.get("https://issuer.test/a.json").mock(
+        return_value=httpx.Response(200, json=_COLLIDE_INDEX_A))
+    respx.get("https://issuer.test/b.json").mock(
+        return_value=httpx.Response(200, json=_COLLIDE_INDEX_B))
+    respx.get("https://issuer.test/a-providers.json").mock(
+        return_value=httpx.Response(200, json=[_rec(NPI_C, [_plan("73836AK0930001")])]))
+    respx.get("https://issuer.test/b-providers.json").mock(
+        return_value=httpx.Response(200, json=[_rec(NPI_A, [_plan("73836AK0930001")])]))
+
+    run_seen: dict[str, str] = {}
+    with httpx.Client() as c:
+        harvest_issuer("https://issuer.test/a.json", tmp_path, c, plan_year=2026,
+                       run_seen=run_seen)
+        _entries, stats = harvest_issuer("https://issuer.test/b.json", tmp_path, c,
+                                         plan_year=2026, run_seen=run_seen)
+    assert any("73836AK0930001" in c for c in stats.plan_collisions)
+    assert any("unioned" in c for c in stats.plan_collisions)
+
+
+@respx.mock
+def test_identical_republication_is_not_reported_as_a_collision(tmp_path):
+    """Two indexes carrying byte-identical data for a plan is the common case and must stay
+    quiet — otherwise the real collisions drown in noise."""
+    respx.get("https://issuer.test/a.json").mock(
+        return_value=httpx.Response(200, json=_COLLIDE_INDEX_A))
+    respx.get("https://issuer.test/b.json").mock(
+        return_value=httpx.Response(200, json=_COLLIDE_INDEX_B))
+    same = [_rec(NPI_A, [_plan("73836AK0930001")])]
+    respx.get("https://issuer.test/a-providers.json").mock(
+        return_value=httpx.Response(200, json=same))
+    respx.get("https://issuer.test/b-providers.json").mock(
+        return_value=httpx.Response(200, json=same))
+
+    run_seen: dict[str, str] = {}
+    with httpx.Client() as c:
+        harvest_issuer("https://issuer.test/a.json", tmp_path, c, plan_year=2026,
+                       run_seen=run_seen)
+        _entries, stats = harvest_issuer("https://issuer.test/b.json", tmp_path, c,
+                                         plan_year=2026, run_seen=run_seen)
+    assert stats.plan_collisions == []
+
+
+def test_orphaned_blobs_are_pruned(tmp_path):
+    """Content-addressing writes a NEW file whenever a network changes, so the old one is
+    left behind referenced by nothing. Observed live: one 125 KB blob committed to the repo
+    and shipped in the function bundle for no reason."""
+    from app.harvest_marketplace import prune_orphan_blobs
+
+    bm, _a, _r = membership.build_bitmap([NPI_A])
+    membership.write_payer(
+        tmp_path, id="73836ak0930001", label="Plan", category="marketplace", level="plan",
+        method="marketplace-mrf", source_url="https://issuer.test/index.json",
+        states=["AK"], bitmap=bm, file_name="mrf/live.roaring")
+    orphan = tmp_path / "mrf" / "stale.roaring"
+    orphan.write_bytes(bm.serialize())
+    # A non-content-addressed blob from another rail must be left completely alone.
+    (tmp_path / "medicare.roaring").write_bytes(bm.serialize())
+
+    removed = prune_orphan_blobs(tmp_path)
+
+    assert removed == ["mrf/stale.roaring"]
+    assert not orphan.exists()
+    assert (tmp_path / "mrf" / "live.roaring").exists()
+    assert (tmp_path / "medicare.roaring").exists()
+
+
+def test_pruning_a_store_with_no_mrf_dir_is_a_no_op(tmp_path):
+    from app.harvest_marketplace import prune_orphan_blobs
+
+    assert prune_orphan_blobs(tmp_path) == []
