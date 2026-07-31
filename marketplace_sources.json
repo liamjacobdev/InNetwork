@@ -2,7 +2,7 @@
   "_comment": "Marketplace (QHP) machine-readable index URLs, parsed from the CMS Machine-Readable URL PUF by app/marketplace_registry.py. Regenerate with `python -m app.marketplace_registry --refresh`. Issuers sharing an index_url are fetched once. The PUF's Tech POC Email column is intentionally dropped.",
   "source_url": "https://data.healthcare.gov/datafile/py2026/machine_readable_PUF.xlsx",
   "plan_year": 2026,
-  "retrieved": "2026-07-29",
+  "retrieved": "2026-07-31",
   "issuer_count": 346,
   "index_url_count": 108,
   "sources": [
