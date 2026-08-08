@@ -1,5 +1,5 @@
 {
-  "generated_at": 1785517851.305029,
+  "generated_at": 1786191289.5690744,
   "offset": 1000000000,
   "payers": {
     "13484ne0090001": {
@@ -10046,6 +10046,21 @@
       "source_url": "https://mrf.healthsparq.com/aetnacvs-egress.nophi.kyruushsq.com/prd/mrf/AETNACVS_I/ALICFI/2026-07-05/tableOfContents/2026-07-05_Aetna-Life-Insurance-Company_index.json.gz",
       "states": null
     },
+    "cigna": {
+      "category": "commercial",
+      "count": 326799,
+      "fetched_at": 1786191189.6480842,
+      "file": "cigna.roaring",
+      "id": "cigna",
+      "label": "Cigna",
+      "level": "payer",
+      "max_age_days": 35,
+      "method": "fhir-plannet",
+      "sha256": "aa930b2775842124e70fc0f4cda76a1424b2d966eb2bd45a7c4a4568791020b9",
+      "size": 666574,
+      "source_url": "https://p-hi2.digitaledge.cigna.com/ProviderDirectory/v1",
+      "states": null
+    },
     "medicare": {
       "category": "medicare",
       "count": 2556661,
@@ -10062,15 +10077,16 @@
     },
     "priority_partners": {
       "category": "medicaid",
-      "count": 26798,
-      "fetched_at": 1783650485.0434678,
+      "count": 27164,
+      "fetched_at": 1786191289.5667663,
       "file": "priority_partners.roaring",
       "id": "priority_partners",
       "label": "Priority Partners (JHHP, MD Medicaid)",
       "level": "payer",
       "max_age_days": 35,
       "method": "fhir-plannet",
-      "sha256": "75abf7398c041be22dd30fa2414ce2362e9eea5c929be95b02ef75ff7192fe92",
+      "sha256": "1249ee7b3dbbc199b1c57c19a80f4324e3e9fb1b5574d85c6c9de9b8cc648153",
+      "size": 67048,
       "source_url": "https://api.jhhpfhir.com/r4/public-pp",
       "states": [
         "MD"
