@@ -1,5 +1,5 @@
 {
-  "generated_at": 1789230347.594698,
+  "generated_at": 1791228218.3751569,
   "offset": 1000000000,
   "payers": {
     "10046hi0020003": {
@@ -93533,15 +93533,16 @@
     },
     "medicare": {
       "category": "medicare",
-      "count": 2556661,
-      "fetched_at": 1782272901.2480297,
+      "count": 2556656,
+      "fetched_at": 1791228212.1073112,
       "file": "medicare.roaring",
       "id": "medicare",
       "label": "Medicare (Original)",
       "level": "plan",
       "max_age_days": 100,
       "method": "cms-enrollment",
-      "sha256": "27d01073a78966070e5dce36f945a1694a51a1a5000ebc53af2360ee9977dd9e",
+      "sha256": "2d87b6f4f345919e12c11d8f4191070f3a8c2c31ff1d012605bfe512190b7a88",
+      "size": 5126296,
       "source_url": "https://data.cms.gov/sites/default/files/2026-05/9b0dd033-8c63-4e52-b9b0-0cabdb5db198/PPEF_Enrollment_Extract_2026.04.01.csv",
       "states": null
     },
